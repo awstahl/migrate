@@ -1,0 +1,8 @@
+ssh:
+  tdcvlog01:
+    keyfile: '/home/awstahl/keys/splunk.pem'
+    user: 'root'
+migration:
+  - search
+  - eventtypes
+  - tags

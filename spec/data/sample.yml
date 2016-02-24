@@ -1,0 +1,6 @@
+ssh:
+  keyfile: '/path/to/key'
+  user: 'admin'
+migration:
+  - search
+  - eventtypes
