@@ -38,6 +38,17 @@ Commands:
 Options:
 -c <path> - Config file
 
+
+Some desired command idioms:
+
+- List all apps on a given server
+[spl-mig] list apps -h example.com -u admin -k ~/path/to/key.pem
+
+- List all alerts in search (connection defaults in config!)
+[spl-mig] list alerts -a search -h example.com
+
+
+
 =end
 
 Migration::Options.parse ARGV

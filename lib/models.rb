@@ -1,11 +1,9 @@
 #
 #  File: models.rb
-#  Author: alex.stahl@sephora.com
+#  Author: alex@testcore.net
 #
 #  This is a set of classes that models splunk config data.
-#  The purpose is to facilitate a clean migration from
-#  legacy to the cluster.
-#
+
 
 # But first, some sugar...
 class Object
@@ -16,18 +14,80 @@ end
 
 class Hash
 
-  # Recursively convert all hash keys to symbols
-  def to_sym!
-    keys.each do |key|
-      keysym = key.to_sym
-      self[ keysym ] = delete key unless key.class? Symbol
-      self[ keysym ].to_sym! if self[ keysym ].class? Hash
+  def to_paths(prefix=nil, stack=[])
+    out=''
+
+    self.each do |k,v|
+      stack << k
+
+      if v.class? Hash
+        out += v.to_paths prefix, stack
+      else
+        out += ( prefix ? prefix + '/' : '' ) + stack.join('/') + "\n"
+      end
+
+      stack.pop
     end
-    self
+    out
   end
 end
 
 module Migration
+
+  # Collection of utility methods to validate data
+  class Valid
+
+    class << self
+
+      def file?(file)
+        File.exists? file and File.readable? file
+      end
+
+      def absolute_path?(path)
+        path =~ /^\//
+      end
+
+      def yaml?(yaml)
+        yaml =~ /\.y(a)?ml$/ and file? yaml
+      end
+
+      def conf?(conf)
+        conf =~ /\.conf$/ and file? conf
+      end
+
+    end
+
+  end
+
+  # Options are passed at runtime
+  class Options
+    require 'optparse'
+
+    @cmds = {}
+    @opts = ::OptionParser.new do |opts|
+      opts.banner = 'Usage: migrate <CMD>'
+    end
+
+    class << self
+      attr_reader :cmds
+
+      # Call parse on the correct subparser
+      def parse(args)
+        cmd = args.shift
+        ( valid? cmd ) ? ( @cmds[cmd].parse args ) : ( puts @opts.help )
+      end
+
+      # Do we have a command to use?
+      def valid?(cmd=nil)
+        cmd and @cmds.key? cmd
+      end
+      private :valid?
+
+      def inherited(klass)
+        @cmds[ klass.to_s.downcase ] = klass
+      end
+    end
+  end
 
   # An Artifact is a decorated hash
   class Artifact
@@ -35,8 +95,9 @@ module Migration
 
     def initialize(source='', parser=nil)
       @source = source
-      @data = {}
+      @data = nil
       @parser = parser
+      yield self if block_given?
     end
 
     def name
@@ -71,22 +132,64 @@ module Migration
 
   end
 
+  class Application < Artifact
+
+    def initialize(source = '', parser = nil)
+      raise InvalidPath unless valid? source
+      super source, parser
+    end
+
+    def [](key)
+      @data[key]
+    end
+
+    def list
+      @data.to_paths @source
+    end
+
+    def valid?(path)
+      Valid.absolute_path? path
+    end
+    private :valid?
+
+  end
+
+  # Master Parser class to track others...
+  class Parser
+    @parsers = []
+    class << self
+      attr_reader :parsers
+
+      def inherited(klass)
+        Parser.parsers << klass
+      end
+
+      def parse(it)
+        klass = Parser.parsers.find do |parser|
+          parser.valid? it
+        end
+        klass.parse it
+      end
+    end
+  end
+
   # The StanzaParser converts an INI-formatted text stanza and extracts it into a hash
-  class StanzaParser
+  # TODO: Rewrite this to use Ini gem...
+  class StanzaParser < Parser
     MULTILINE = /\\$/
 
     class << self
       def parse(str='')
-        validate str
+        raise InvalidIniString unless valid? str
         @results = {}
         name
         process
         @results
       end
 
-      def validate(str)
+      def valid?(str)
         @lines = str.split "\n"
-        raise InvalidIniString unless @lines.first =~ /^\[.+\]$/ and @lines.size > 1
+        @lines.first =~ /^\[.+\]$/ and @lines.size > 1
       end
 
       def name
@@ -125,7 +228,7 @@ module Migration
   end
 
   # The YamlParser loads a YAML file into its corresponding ruby data structure
-  class YamlParser
+  class YamlParser < Parser
 
     class << self
       def parse(it)
@@ -134,75 +237,129 @@ module Migration
       end
 
       def pick(it)
-        if File.exist? it
-          return File.open it, 'r'
-        else
-          return it
-        end
+        valid?(it) ? File.open(it, 'r') : it
       end
       private :pick
+
+      def valid?(file)
+        Valid.yaml? file
+      end
     end
   end
 
   # The ConfParser parses a stanza-based file into its constituent stanzas as an array
-  class ConfParser
+  class ConfParser < Parser
     class << self
       def parse(file)
-        File.open(file, 'r').read.split "\n\n" if File.exist? file
+        File.open(file, 'r').read.split "\n\n" if valid? file
+      end
+
+      def valid?(file)
+        Valid.conf? file
       end
     end
   end
 
+  # The ListParser creates a hash/array structure based on a list of files
+  class ListParser < Parser
+
+    class << self
+      def parse(list)
+        @out = {}
+        return @out unless valid? list
+
+        list.split.each do |path|
+
+          # Assume we're splitting basic 'find' output
+          # otherwise, update params to inject regex, delims...
+          add path[/[A-z0-9].+$/].split('/'), @out
+
+        end
+        @out
+      end
+
+      def valid?(list)
+        list.class? String and list =~ /[A-z]\/[A-z]/
+      end
+
+      def add(path, out)
+        latest = path.shift
+
+        if path.size == 0
+          out[ latest ] = []
+        else
+          out[ latest ] = {} unless out.key? latest
+          add path, out[ latest ]
+        end
+        out
+
+      end
+      private :add
+
+    end
+
+  end
+
   class Server
-    # Gets config data from Configuration hash - no, inject it
-    # Holds a Files hash, with collections of Artifacts?
-    # Need to manage file paths - paths as keys?
-    # - search paths (config)
-    # - found files
-    # Need to find, fetch files
-    # Need to output artifacts in new files
-    # Use Artifactory to create artifact collections from files
+    # TODO: Get config data from injected Configuration hash
 
     # Opens the connection to the remote server using injected proto
     class Connection
-      attr_reader :remote
 
       def initialize(host, user, keyfile=nil, proto=nil)
-        validate keyfile
+        raise MissingKeyfile unless valid? keyfile
+        require 'net/ssh'
+        @keyfile = keyfile
         @host = host
         @user = user
         proto ? connect(proto) : connect
       end
 
-      def validate(keyfile)
-        raise MissingKeyfile unless File.exist? keyfile
-        require 'net/ssh'
-        @keyfile = keyfile
+      def valid?(key)
+        Valid.file? key
       end
-      private :validate
+      private :valid?
 
       def connect(proto=::Net::SSH)
         @remote = proto.start @host, @user, keys: [ @keyfile ]
       end
       private :connect
-    end
 
-    # Container for file path & content data
-    class Confset
-      attr_reader :basepath
-
-      def initialize(base)
-        @basepath = base
+      def exec(cmd)
+        @remote.exec! cmd
       end
     end
+
+    # A Porter communicates with the remote server, using
+    # an 'exec' method to send wrapped cmd strings.
+    class Porter
+
+      def initialize(conn)
+        raise InvalidConnection unless conn.respond_to? :exec
+        @conn = conn
+      end
+
+      def valid?(path)
+        Valid.absolute_path? path
+      end
+      private :valid?
+
+      def list(path)
+        valid? path
+        @conn.exec "find #{ path } -type f -iname \"*\""
+      end
+
+      def get(file)
+        valid? file
+        @conn.exec "cat #{ file }"
+      end
+
+    end
   end
 
-  class MissingParser < Exception
-  end
-
-  class InvalidIniString < Exception
-  end
-
-  class MissingKeyfile < Exception
-  end
+  class InvalidConnection < Exception; end
+  class MissingParser < Exception; end
+  class InvalidPath < Exception; end
+  class InvalidIniString < Exception; end
+  class MissingKeyfile < Exception; end
 end

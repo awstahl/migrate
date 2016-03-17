@@ -1,6 +1,7 @@
 require 'rspec'
 require "#{ File.dirname __FILE__ }/../lib/models.rb"
 
+# TODO: Moar tests
 
 describe 'Some Sugar' do
 
@@ -8,15 +9,60 @@ describe 'Some Sugar' do
     expect( ''.class? String ).to be true
   end
 
-  it 'can convert hash keys' do
-    expect( { 'a' => 1, 'b' => { 'c' => 3 }}.to_sym! ).to include( { a: 1, b: { c: 3 }} )
+  it 'flattens hashes to paths' do
+    hsh = { 'default' => { 'app.conf' => [] }, 'local' => { 'auth.conf' => [] }, 'meta' => { 'local.meta' => [] } }
+    expect( hsh.to_paths ).to eq( "default/app.conf\nlocal/auth.conf\nmeta/local.meta\n" )
+  end
+
+  it 'accepts a prefix to hash paths' do
+    hsh = { 'default' => { 'app.conf' => [] }, 'local' => { 'auth.conf' => [] }, 'meta' => { 'local.meta' => [] } }
+    expect( hsh.to_paths '/path/to').to eq( "/path/to/default/app.conf\n/path/to/local/auth.conf\n/path/to/meta/local.meta\n" )
+  end
+
+end
+
+describe 'Migration Validator' do
+
+  it 'exists' do
+    expect( Object.const_defined? 'Migration::Valid' ).to be_truthy
+  end
+
+  it 'validates a file' do
+    expect( Migration::Valid.file? __FILE__ ).to be_truthy
+  end
+
+  it 'rejects a non-existent file' do
+    expect( Migration::Valid.file? '/path/to/nowhere' ).to be_falsey
+  end
+
+  it 'validates an absolute path' do
+    expect( Migration::Valid.absolute_path? '/path/to/nowhere' ).to be_truthy
+  end
+
+  it 'rejects relative paths' do
+    expect( Migration::Valid.absolute_path? 'some/other/path' ).to be_falsey
+  end
+
+  it 'validates a yaml file' do
+    expect( Migration::Valid.yaml? "#{ File.dirname __FILE__ }/data/sample.yml" ).to be_truthy
+  end
+
+  it 'rejects a non-yaml file' do
+    expect( Migration::Valid.yaml? '/not/a/yaml.txt' ).to be_falsey
+  end
+
+  it 'validates a conf file' do
+    expect( Migration::Valid.conf? "#{ File.dirname __FILE__ }/data/sample.conf" ).to be_truthy
+  end
+
+  it 'rejects a non-conf file' do
+    expect( Migration::Valid.conf? '/not/a/conf.txt' ).to be_falsey
   end
 end
 
 describe 'Migration Artifact' do
 
   def parsers
-    # No actual abstract parent class...
     @parser = double 'Migration::Parser'
     allow( @parser ).to receive( :parse ).and_return( name: 'artifact name', search: 'index=foobar' )
   end
@@ -54,7 +100,14 @@ describe 'Migration Artifact' do
     expect( @str.source ).to eq( 'difference' )
   end
 
-  it 'requires a perser to parse' do
+  it 'accepts a block' do
+    artifact = Migration::Artifact.new do |art|
+      art.source = 'some text'
+    end
+    expect( artifact.source ).to eq('some text')
+  end
+
+  it 'requires a parser to parse' do
     expect { @str.parse }.to raise_exception( Migration::MissingParser )
   end
 
@@ -77,6 +130,80 @@ describe 'Migration Artifact' do
 
   it 'can print itself formatted' do
     expect( @art.to_s ).to eq("[artifact name]\nsearch = index=foobar\n\n")
+  end
+
+end
+
+describe 'Migration Application' do
+
+  def parsers
+    @parser = double 'Migration::Parser'
+    @result = { 'default' => { 'app.conf' => [] }, 'local' => { 'auth.conf' => [] }, 'meta' => { 'local.meta' => [] } }
+    allow( @parser ).to receive( :parse ).and_return( @result )
+  end
+
+  def apps
+    @base = "#{ File.dirname __FILE__ }/data/app"
+    @appp = Migration::Application.new @base, @parser
+  end
+
+  before :each do
+    @base = "#{ File.dirname __FILE__ }/data"
+    parsers
+    apps
+  end
+
+  it 'exists' do
+    expect( Object.const_defined? 'Migration::Application' ).to be_truthy
+  end
+
+  it 'is a type of Artifact' do
+    expect( Migration::Application.allocate.kind_of? Migration::Artifact ).to be_truthy
+  end
+
+  it 'requires an absolute path' do
+    expect { Migration::Application.new( 'relative/path') }.to raise_exception (Migration::InvalidPath )
+  end
+
+  it 'provides a hash interface to its contents' do
+    @appp.parse
+    expect( @appp[ 'default' ][ 'app.conf' ] ).to eq([])
+    expect( @appp[ 'local' ][ 'auth.conf' ] ).to eq([])
+    expect( @appp[ 'meta' ][ 'local.meta' ] ).to eq([])
+  end
+
+  it 'prints a file list' do
+    @appp.parse
+    expect( @appp.list ).to eq( "#{ @base }/default/app.conf\n#{ @base }/local/auth.conf\n#{ @base }/meta/local.meta\n" )
+  end
+end
+
+describe 'Migration Parsing' do
+
+  before :all do
+    class Migration::Foo < Migration::Parser
+      class << self
+        def parse(it)
+          'pass'
+        end
+
+        def valid?(v)
+          v == 'passme'
+        end
+      end
+    end
+  end
+
+  it 'exists' do
+    expect( Object.const_defined? 'Migration::Parser' ).to be_truthy
+  end
+
+  it 'tracks its parsers' do
+    expect( Migration::Parser.parsers.include? Migration::Foo ).to be_truthy
+  end
+
+  it 'selects a parser' do
+    expect( Migration::Parser.parse 'passme' ).to eq( 'pass' )
   end
 
 end
@@ -108,6 +235,11 @@ describe 'Migration Stanza Parsing' do
     ini = "[artifact name]\n"
     expect { Migration::StanzaParser.parse ini }.to raise_exception(Migration::InvalidIniString )
   end
+
+  it 'performs validation' do
+    notini = 'this is not an ini string'
+    expect( Migration::StanzaParser.valid? notini ).to be_falsey
+  end
 end
 
 describe 'Migration Yaml Parsing' do
@@ -126,6 +258,13 @@ describe 'Migration Yaml Parsing' do
     expect( Migration::YamlParser.parse(@file) ).to include( 'ssh' => { 'keyfile' => '/path/to/key', 'user' => 'admin' })
   end
 
+  it 'performs simple validation' do
+    expect( Migration::YamlParser.valid? '/some/other/file.yml' ).to be_falsey
+  end
+
+  it 'is a parser' do
+    expect( Migration::YamlParser.ancestors[1] ).to eq( Migration::Parser )
+  end
 end
 
 describe 'Migration Conf Parsing' do
@@ -137,6 +276,42 @@ describe 'Migration Conf Parsing' do
   it 'parses a config file' do
     expect( Migration::ConfParser.parse( @file ).size ).to eq(3)
   end
+
+  it 'performs simple validation' do
+    expect( Migration::ConfParser.valid? '/some/file.conf').to be_falsey
+  end
+
+  it 'is a parser' do
+    expect( Migration::ConfParser.ancestors[1] ).to eq( Migration::Parser )
+  end
+end
+
+describe 'Migration File List Parsing' do
+
+  before :all do
+    @data = "./default/conf/data.conf\n./local/conf/web.conf\n/meta/conf/local.meta\n/meta/conf/default.meta"
+  end
+
+  it 'exists' do
+    expect( Object.const_defined? 'Migration::ListParser' ).to be_truthy
+  end
+
+  it 'performs simple validation' do
+    expect( Migration::ListParser.valid? 123 ).to be_falsey
+  end
+
+  it 'parses a file list to a nested hash' do
+    expect( Migration::ListParser.parse( @data )['local'].key? 'web.conf' ).to be_truthy
+  end
+
+  it 'parses the elements to an array' do
+    parsed = Migration::ListParser.parse( @data )
+    expect( parsed[ 'default' ][ 'conf' ][ 'data.conf' ].class? Array ).to be_truthy
+    expect( parsed[ 'local' ][ 'conf' ][ 'web.conf' ].class? Array ).to be_truthy
+    expect( parsed[ 'meta' ][ 'conf' ][ 'local.meta' ].class? Array ).to be_truthy
+    expect( parsed[ 'meta' ][ 'conf' ][ 'default.meta' ].class? Array ).to be_truthy
+  end
+
 end
 
 describe 'Migration Server Connection' do
@@ -169,32 +344,110 @@ describe 'Migration Server Connection' do
     expect( Object.const_defined? 'Migration::Server::Connection' ).to be_truthy
   end
 
-  it 'expects an exixting key' do
+  it 'expects an existing key' do
     expect { @conn.call @host, @user, @key }.to raise_exception( Migration::MissingKeyfile )
   end
 
   it 'accepts an existing file' do
-    expect( @conn.call @host, @user, @file, @proto )
+    expect( (@conn.call @host, @user, @file, @proto).class ).to eq( Migration::Server::Connection )
   end
 
   it 'executes remote commands' do
-    conn = @conn.call @host, @user, @file, @proto
-    expect( conn.remote.exec! 'll' ).to eq('/path/to/files...')
+    expect( (@conn.call @host, @user, @file, @proto).exec 'll' ).to eq('/path/to/files...')
   end
 end
 
+describe 'Migration Server Porter' do
 
-describe 'Migration Server Conf file' do
+  before :all do
+    class Stub; end
+  end
+
+  before :each do
+    @conn = double 'Migration::Server::Connection'
+    allow( @conn ).to receive( :exec ).with( 'find /path/to/files -type f -iname "*"' ).and_return( "./sub/file1.txt\n./sub/file2.txt\n./sub2/file3.lst" )
+    allow( @conn ).to receive( :exec ).with( 'cat /path/to/file' ).and_return( 'all your base are belong to us' )
+  end
 
   it 'exists' do
-    expect( Object.const_defined? "Migration::Server::Confset" ).to be_truthy
+    expect( Object.const_defined? 'Migration::Server::Porter' ).to be_truthy
   end
 
-  it 'accepts a base path' do
-    expect( Migration::Server::Confset.new('/path/to/confs').basepath ).to eq('/path/to/confs')
+  it 'accepts an executor' do
+    expect( Migration::Server::Porter.new @conn ).to be_truthy
   end
 
-  it 'wat now' do
+  it 'requires an exec method' do
+    expect { Migration::Server::Porter.new Stub.new }.to raise_exception( 'Migration::InvalidConnection' )
+  end
 
+  it 'lists files using a connection' do
+    expect( Migration::Server::Porter.new( @conn ).list '/path/to/files' ).to eq( "./sub/file1.txt\n./sub/file2.txt\n./sub2/file3.lst" )
+  end
+
+  it 'prints the contents of a file' do
+    expect( Migration::Server::Porter.new( @conn ).get '/path/to/file' ).to eq( 'all your base are belong to us' )
   end
 end
+
+describe 'Migration Server' do
+
+  before :each do
+    @conf = { host: 'localhost', user: 'splunk' }
+  end
+
+
+
+end
+
+describe 'Migration Options' do
+
+  before :all do
+
+    class OptTesting < Migration::Options
+
+      @opts = OptionParser.new do |opts|
+        opts.banner = 'Usage: opttesting -p STRING'
+        opts.on '-p', '--print STRING', 'the string to print back' do |arg|
+          @runtime[:string] = "the string to print back: #{ arg }"
+        end
+      end
+
+      class << self
+        attr_reader :runtime
+
+        def parse(args)
+          @runtime = {}
+          @opts.parse args
+          @runtime
+        end
+      end
+    end
+  end
+
+  it 'exists' do
+    expect( Object.const_defined? 'Migration::Options' ).to be_truthy
+  end
+
+  it 'tracks its commands' do
+    expect( Migration::Options.cmds.key? 'opttesting' ).to be_truthy
+  end
+
+  it 'holds a reference to its cmd objects' do
+    expect( Migration::Options.cmds['opttesting'].allocate.class ).to eq( OptTesting )
+  end
+
+  it 'parses an args array' do
+    expect( Migration::Options.parse(%w[opttesting -p foobar])[:string] ).to eq('the string to print back: foobar')
+  end
+
+  it 'provides help by default' do
+    expect { Migration::Options.parse %w[notacmd] }.to output("Usage: migrate <CMD>\n").to_stdout
+  end
+
+  it 'provides help by default pt. 2' do
+    expect { Migration::Options.parse [] }.to output("Usage: migrate <CMD>\n").to_stdout
+  end
+
+end
+
