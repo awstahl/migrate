@@ -55,6 +55,10 @@ module Migration
         conf =~ /\.conf$/ and file? conf
       end
 
+      def ini?(ini)
+        ini =~ /^\[.+\n.+=.+/m
+      end
+
     end
 
   end
@@ -95,13 +99,22 @@ module Migration
 
     def initialize(source='', parser=nil)
       @source = source
-      @data = nil
+      @data = {}
       @parser = parser
       yield self if block_given?
     end
 
     def name
-      @data[:name]
+      @data[ :name ]
+    end
+
+    def [](key)
+      @data[ key ]
+    end
+
+    def []=(key, value)
+      puts "adding the fucking key #{ key } with the fucking value #{ value }"
+      @data[ key ] = value
     end
 
     def keys
@@ -168,7 +181,7 @@ module Migration
         klass = Parser.parsers.find do |parser|
           parser.valid? it
         end
-        klass.parse it
+        klass.parse it if klass
       end
     end
   end
@@ -237,6 +250,7 @@ module Migration
       end
 
       def pick(it)
+        # TODO: This isn't right...
         valid?(it) ? File.open(it, 'r') : it
       end
       private :pick
@@ -250,12 +264,23 @@ module Migration
   # The ConfParser parses a stanza-based file into its constituent stanzas as an array
   class ConfParser < Parser
     class << self
-      def parse(file)
-        File.open(file, 'r').read.split "\n\n" if valid? file
+      def parse(conf)
+        pick( conf ).split( "\n\n" ).map { |i| i.strip }
       end
 
-      def valid?(file)
-        Valid.conf? file
+      def pick(it)
+        if Valid.conf? it
+          puts "reading file: #{ it }"
+          File.read it
+        elsif Valid.ini? it
+          it
+        else false
+        end
+      end
+      private :pick
+
+      def valid?(conf)
+        Valid.conf? conf or Valid.ini? conf
       end
     end
   end

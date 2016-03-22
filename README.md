@@ -1,1 +1,22 @@
-# splunk-mig
+migrate: a (splunk) config artifact migration tool
+
+Migrate configuration artifacts from one system to another (say, dev to test). Currently is a collection of objects designed for use with a splunk server.
+
+Requires: ruby 2.x, a few gems, a splunk server
+
+Usage
+-----
+
+### irb
+``` shell
+require './lib/models'
+
+# First, create a (SSH-based) connection object
+connection = Migration::Server::Connection.new 'myhost', 'myuser', '/path/to/mykey.pem'
+
+# Pass it to a porter
+porter = Migration::Server::Porter.new connection
+
+# Use the porter & Parser to fetch file lists
+list = Migration::Parser.parse porter.list('/path/to/confs')
+

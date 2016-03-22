@@ -58,6 +58,10 @@ describe 'Migration Validator' do
   it 'rejects a non-conf file' do
     expect( Migration::Valid.conf? '/not/a/conf.txt' ).to be_falsey
   end
+
+  it 'validates an ini string' do
+    expect( Migration::Valid.ini? "[Test]\naction.script = 1" ).to be_truthy
+  end
 end
 
 describe 'Migration Artifact' do
@@ -271,10 +275,25 @@ describe 'Migration Conf Parsing' do
 
   before :all do
     @file = "#{ File.dirname __FILE__ }/data/sample.conf"
+    @str = File.read "#{ File.dirname __FILE__ }/data/sample.conf"
   end
 
-  it 'parses a config file' do
+  it 'parses a config file to an array' do
     expect( Migration::ConfParser.parse( @file ).size ).to eq(3)
+  end
+
+  it 'contains the parsed content' do
+    parsed = Migration::ConfParser.parse( @file )
+    expect( parsed ).to include "[Test]\naction.script = 1"
+    expect( parsed ).to include "[tstb]\naction.script.filename = pagerduty_index_alert"
+    expect( parsed ).to include "[Test Cee]\naction.email.sendpdf = 1"
+  end
+
+  it 'can parse a string' do
+    parsed = Migration::ConfParser.parse( @str )
+    expect( parsed ).to include "[Test]\naction.script = 1"
+    expect( parsed ).to include "[tstb]\naction.script.filename = pagerduty_index_alert"
+    expect( parsed ).to include "[Test Cee]\naction.email.sendpdf = 1"
   end
 
   it 'performs simple validation' do
@@ -301,7 +320,7 @@ describe 'Migration File List Parsing' do
   end
 
   it 'parses a file list to a nested hash' do
-    expect( Migration::ListParser.parse( @data )['local'].key? 'web.conf' ).to be_truthy
+    expect( Migration::ListParser.parse( @data )['local'].key? 'conf' ).to be_truthy
   end
 
   it 'parses the elements to an array' do
@@ -450,4 +469,3 @@ describe 'Migration Options' do
   end
 
 end
-
