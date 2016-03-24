@@ -32,6 +32,18 @@ class Hash
   end
 end
 
+class String
+  def to_uri
+    require 'uri'
+    URI.encode self
+  end
+
+  def to_plain
+    require 'uri'
+    URI.decode self
+  end
+end
+
 module Migration
 
   # Collection of utility methods to validate data
@@ -47,16 +59,20 @@ module Migration
         path =~ /^\//
       end
 
-      def yaml?(yaml)
-        yaml =~ /\.y(a)?ml$/ and file? yaml
+      def ini?(ini)
+        ini =~ /^\[.+\n.+=.+/m
+      end
+
+      def yaml?(yml)
+        yml =~ /^-{3}\s/
       end
 
       def conf?(conf)
-        conf =~ /\.conf$/ and file? conf
+        conf =~ /\n\n/
       end
 
-      def ini?(ini)
-        ini =~ /^\[.+\n.+=.+/m
+      def list?(list)
+        list =~ /\n/ and list !~ /\n\n/
       end
 
     end
@@ -100,7 +116,7 @@ module Migration
     def initialize(source='', parser=nil)
       @source = source
       @data = {}
-      @parser = parser
+      @parser = parser || Migration::Parser
       yield self if block_given?
     end
 
@@ -113,7 +129,6 @@ module Migration
     end
 
     def []=(key, value)
-      puts "adding the fucking key #{ key } with the fucking value #{ value }"
       @data[ key ] = value
     end
 
@@ -122,7 +137,6 @@ module Migration
     end
 
     def parse
-      raise MissingParser unless @parser
       @data = @parser.parse @source
     end
 
@@ -131,7 +145,7 @@ module Migration
     end
 
     def to_s
-      "[#{ @data[:name] }]\n" + data_to_s + "\n"
+      "[#{ @data[ :name ] }]\n" + data_to_s
     end
 
     def data_to_s
@@ -181,28 +195,31 @@ module Migration
         klass = Parser.parsers.find do |parser|
           parser.valid? it
         end
-        klass.parse it if klass
+        klass ? klass.parse( it ) : raise( ParserNotFound )
       end
     end
   end
 
   # The StanzaParser converts an INI-formatted text stanza and extracts it into a hash
-  # TODO: Rewrite this to use Ini gem...
+  # TODO: Rewrite this to use Ini gem... maybe.
   class StanzaParser < Parser
     MULTILINE = /\\$/
 
     class << self
-      def parse(str='')
-        raise InvalidIniString unless valid? str
+
+      def parse(stanza)
+        return nil unless valid? stanza
+        @lines = stanza.split "\n"
         @results = {}
         name
         process
         @results
       end
 
-      def valid?(str)
-        @lines = str.split "\n"
-        @lines.first =~ /^\[.+\]$/ and @lines.size > 1
+      def valid?(stanza)
+        # @lines = stanza.split "\n"
+        # @lines.first =~ /^\[.+\]$/
+        Valid.ini? stanza
       end
 
       def name
@@ -215,7 +232,7 @@ module Migration
 
         @lines.each do |line|
           if multi
-            @results[multi] += "\n#{ line }"
+            @results[ multi ] += "\n#{ line }"
             multi = nil unless line =~ MULTILINE
           else
             multi = extract line
@@ -240,88 +257,81 @@ module Migration
     end
   end
 
-  # The YamlParser loads a YAML file into its corresponding ruby data structure
+  # The YamlParser loads a YAML string into its corresponding ruby data structure
   class YamlParser < Parser
-
     class << self
-      def parse(it)
-        require 'yaml'
-        YAML.load pick(it)
+
+      def parse(yml)
+        if valid? yml
+          require 'yaml'
+          YAML.load yml
+        end
       end
 
-      def pick(it)
-        # TODO: This isn't right...
-        valid?(it) ? File.open(it, 'r') : it
+      def valid?(yml)
+        Valid.yaml? yml
       end
-      private :pick
+    end
+  end
+
+  # The FileParser loads a string from a file then parses it
+  class FileParser < Parser
+    class << self
+
+      def parse(file)
+        Migration::Parser.parse File.read( file ) if valid? file
+      end
 
       def valid?(file)
-        Valid.yaml? file
+        Valid.file? file
       end
     end
   end
 
   # The ConfParser parses a stanza-based file into its constituent stanzas as an array
   class ConfParser < Parser
+
     class << self
       def parse(conf)
-        pick( conf ).split( "\n\n" ).map { |i| i.strip }
+        conf.split( "\n\n" ).map { |i| i.strip }
       end
-
-      def pick(it)
-        if Valid.conf? it
-          puts "reading file: #{ it }"
-          File.read it
-        elsif Valid.ini? it
-          it
-        else false
-        end
-      end
-      private :pick
 
       def valid?(conf)
-        Valid.conf? conf or Valid.ini? conf
+        Valid.conf? conf
       end
     end
   end
 
-  # The ListParser creates a hash/array structure based on a list of files
+  # The ListParser creates an array from a multiline string
   class ListParser < Parser
 
     class << self
       def parse(list)
-        @out = {}
-        return @out unless valid? list
-
-        list.split.each do |path|
-
-          # Assume we're splitting basic 'find' output
-          # otherwise, update params to inject regex, delims...
-          add path[/[A-z0-9].+$/].split('/'), @out
-
-        end
-        @out
+        list.split if valid? list
       end
 
       def valid?(list)
-        list.class? String and list =~ /[A-z]\/[A-z]/
+        Valid.list? list
       end
-
-      def add(path, out)
-        latest = path.shift
-
-        if path.size == 0
-          out[ latest ] = []
-        else
-          out[ latest ] = {} unless out.key? latest
-          add path, out[ latest ]
-        end
-        out
-
-      end
-      private :add
-
     end
+
+    # The PathParser creates a nested hash with directories as keys
+    #   add path[ /[A-z0-9].+$/ ].split( '/' ), @out
+
+    #   def add(path, out)
+    #     latest = path.shift
+    #
+    #     if path.size == 0
+    #       out[ latest ] = []
+    #     else
+    #       out[ latest ] = {} unless out.key? latest
+    #       add path, out[ latest ]
+    #     end
+    #     out
+    #
+    #   end
+    #   private :add
+
 
   end
 
@@ -383,8 +393,7 @@ module Migration
   end
 
   class InvalidConnection < Exception; end
-  class MissingParser < Exception; end
   class InvalidPath < Exception; end
-  class InvalidIniString < Exception; end
   class MissingKeyfile < Exception; end
+  class ParserNotFound < Exception; end
 end

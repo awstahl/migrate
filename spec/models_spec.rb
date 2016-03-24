@@ -19,6 +19,14 @@ describe 'Some Sugar' do
     expect( hsh.to_paths '/path/to').to eq( "/path/to/default/app.conf\n/path/to/local/auth.conf\n/path/to/meta/local.meta\n" )
   end
 
+  it 'adds to_uri to strings' do
+    expect( 'a b c '.to_uri ).to eq( 'a%20b%20c%20')
+  end
+
+  it 'adds to_plain to strings' do
+    expect( 'a%20b%20c%20'.to_plain ).to eq( 'a b c ')
+  end
+
 end
 
 describe 'Migration Validator' do
@@ -43,24 +51,40 @@ describe 'Migration Validator' do
     expect( Migration::Valid.absolute_path? 'some/other/path' ).to be_falsey
   end
 
-  it 'validates a yaml file' do
-    expect( Migration::Valid.yaml? "#{ File.dirname __FILE__ }/data/sample.yml" ).to be_truthy
-  end
-
-  it 'rejects a non-yaml file' do
-    expect( Migration::Valid.yaml? '/not/a/yaml.txt' ).to be_falsey
-  end
-
-  it 'validates a conf file' do
-    expect( Migration::Valid.conf? "#{ File.dirname __FILE__ }/data/sample.conf" ).to be_truthy
-  end
-
-  it 'rejects a non-conf file' do
-    expect( Migration::Valid.conf? '/not/a/conf.txt' ).to be_falsey
-  end
-
   it 'validates an ini string' do
     expect( Migration::Valid.ini? "[Test]\naction.script = 1" ).to be_truthy
+  end
+
+  it 'rejects a non-ini string' do
+    expect( Migration::Valid.ini? "Test\nfoo = bar" ).to be_falsey
+  end
+
+  it 'validates a yaml string' do
+    expect( Migration::Valid.yaml? "---\n- a\n- b\n- c\n" ).to be_truthy
+  end
+
+  it 'rejects a non-yaml string' do
+    expect( Migration::Valid.yaml? 'abc' ).to be_falsey
+  end
+
+  it 'validates a conf string' do
+    expect( Migration::Valid.conf? "a\n\nb" ).to be_truthy
+  end
+
+  it 'rejects a non-conf string' do
+    expect( Migration::Valid.conf? "a\nb" ).to be_falsey
+  end
+
+  it 'validates a list' do
+    expect( Migration::Valid.list? "a\nb\nc" ).to be_truthy
+  end
+
+  it 'rejects a non-list' do
+    expect( Migration::Valid.list? "abc" ).to be_falsey
+  end
+
+  it 'rejects a list with empty elements' do
+    expect( Migration::Valid.list? "a\n\nb" ).to be_falsey
   end
 end
 
@@ -108,11 +132,13 @@ describe 'Migration Artifact' do
     artifact = Migration::Artifact.new do |art|
       art.source = 'some text'
     end
-    expect( artifact.source ).to eq('some text')
+    expect( artifact.source ).to eq( 'some text' )
   end
 
-  it 'requires a parser to parse' do
-    expect { @str.parse }.to raise_exception( Migration::MissingParser )
+  it 'uses a default parser to parse' do
+    art = Migration::Artifact.new "[stanza]\nkey = val\n"
+    art.parse
+    expect( art.name ).to eq( 'stanza' )
   end
 
   it 'accepts a parser' do
@@ -128,12 +154,12 @@ describe 'Migration Artifact' do
   end
 
   it 'yields itself for migration' do
-    @art.migrate {|a| a[:name] = 'migrated'}
+    @art.migrate { |a| a[ :name ] = 'migrated' }
     expect( @art.name ).to eq( 'migrated' )
   end
 
   it 'can print itself formatted' do
-    expect( @art.to_s ).to eq("[artifact name]\nsearch = index=foobar\n\n")
+    expect( @art.to_s ).to eq( "[artifact name]\nsearch = index=foobar\n" )
   end
 
 end
@@ -210,12 +236,16 @@ describe 'Migration Parsing' do
     expect( Migration::Parser.parse 'passme' ).to eq( 'pass' )
   end
 
+  it 'raises an exception if a parser is not found' do
+    expect { Migration::Parser.parse 'invalid' }.to raise_exception( 'Migration::ParserNotFound' )
+  end
+
 end
 
 describe 'Migration Stanza Parsing' do
 
   before :all do
-    @ini = "[artifact name]\nowner = admin\nsearch = index=foobar\n\n"
+    @ini = "[artifact name]\nowner = admin\nsearch = index=foobar\n"
   end
 
   it 'exists' do
@@ -223,21 +253,16 @@ describe 'Migration Stanza Parsing' do
   end
 
   it 'expects an ini formatted string' do
-    expect { Migration::StanzaParser.parse 'not an ini string' }.to raise_exception(Migration::InvalidIniString )
+    expect( Migration::StanzaParser.parse 'not an ini string' ).to be_falsey
   end
 
   it 'parses an ini string into a hash' do
-    expect( Migration::StanzaParser.parse @ini ).to include(name: eq('artifact name'), owner: 'admin', search: 'index=foobar' )
+    expect( Migration::StanzaParser.parse @ini ).to include( name: 'artifact name' , owner: 'admin', search: 'index=foobar' )
   end
 
   it 'parses multiline statements' do
     ini = "[artifact name]\nowner = admin\nsearch = index=foobar some | \\nsearch terms here\n\n"
-    expect( Migration::StanzaParser.parse ini ).to include(search: 'index=foobar some | \\nsearch terms here' )
-  end
-
-  it 'expects a stanza' do
-    ini = "[artifact name]\n"
-    expect { Migration::StanzaParser.parse ini }.to raise_exception(Migration::InvalidIniString )
+    expect( Migration::StanzaParser.parse ini ).to include( search: 'index=foobar some | \\nsearch terms here' )
   end
 
   it 'performs validation' do
@@ -249,21 +274,11 @@ end
 describe 'Migration Yaml Parsing' do
 
   before :all do
-    @str = 'ssh:\n  keyfile: \"/path/to/key\"\n  user: admin\nmigration:\n- search\n- eventtypes\n'
-    @file = "#{ File.dirname __FILE__ }/data/sample.yml"
+    @str = "---\nssh:\n  keyfile: \"/path/to/key\"\n  user: admin\nmigration:\n- search\n- eventtypes\n"
   end
 
-  # This is broken in rspec.  Works fine from IRB...
-  # it 'parses a yaml string' do
-  #   expect( Migration::YamlParser.parse @str ).to include( migration: ['search', 'eventtypes' ] )
-  # end
-
-  it 'parses a yaml file' do
-    expect( Migration::YamlParser.parse(@file) ).to include( 'ssh' => { 'keyfile' => '/path/to/key', 'user' => 'admin' })
-  end
-
-  it 'performs simple validation' do
-    expect( Migration::YamlParser.valid? '/some/other/file.yml' ).to be_falsey
+  it 'parses a yaml string' do
+    expect( Migration::YamlParser.parse @str ).to include( 'migration' => ['search', 'eventtypes' ] )
   end
 
   it 'is a parser' do
@@ -274,22 +289,10 @@ end
 describe 'Migration Conf Parsing' do
 
   before :all do
-    @file = "#{ File.dirname __FILE__ }/data/sample.conf"
     @str = File.read "#{ File.dirname __FILE__ }/data/sample.conf"
   end
 
-  it 'parses a config file to an array' do
-    expect( Migration::ConfParser.parse( @file ).size ).to eq(3)
-  end
-
-  it 'contains the parsed content' do
-    parsed = Migration::ConfParser.parse( @file )
-    expect( parsed ).to include "[Test]\naction.script = 1"
-    expect( parsed ).to include "[tstb]\naction.script.filename = pagerduty_index_alert"
-    expect( parsed ).to include "[Test Cee]\naction.email.sendpdf = 1"
-  end
-
-  it 'can parse a string' do
+  it 'parses a string' do
     parsed = Migration::ConfParser.parse( @str )
     expect( parsed ).to include "[Test]\naction.script = 1"
     expect( parsed ).to include "[tstb]\naction.script.filename = pagerduty_index_alert"
@@ -297,12 +300,18 @@ describe 'Migration Conf Parsing' do
   end
 
   it 'performs simple validation' do
-    expect( Migration::ConfParser.valid? '/some/file.conf').to be_falsey
+    expect( Migration::ConfParser.valid? 'not a conf string' ).to be_falsey
   end
 
   it 'is a parser' do
     expect( Migration::ConfParser.ancestors[1] ).to eq( Migration::Parser )
   end
+end
+
+describe 'Migration File Parsing' do
+
+  # TODO: Need to finish string-based parsing first...
+
 end
 
 describe 'Migration File List Parsing' do
@@ -311,27 +320,36 @@ describe 'Migration File List Parsing' do
     @data = "./default/conf/data.conf\n./local/conf/web.conf\n/meta/conf/local.meta\n/meta/conf/default.meta"
   end
 
-  it 'exists' do
-    expect( Object.const_defined? 'Migration::ListParser' ).to be_truthy
+  it 'parses a multiline string to an array' do
+    expect( Migration::ListParser.parse @data ).to include( './default/conf/data.conf' )
+    expect( Migration::ListParser.parse @data ).to include( './local/conf/web.conf' )
+    expect( Migration::ListParser.parse @data ).to include( '/meta/conf/local.meta' )
+    expect( Migration::ListParser.parse @data ).to include( '/meta/conf/default.meta' )
   end
 
   it 'performs simple validation' do
     expect( Migration::ListParser.valid? 123 ).to be_falsey
   end
 
-  it 'parses a file list to a nested hash' do
-    expect( Migration::ListParser.parse( @data )['local'].key? 'conf' ).to be_truthy
+  it 'validates the list' do
+    expect( Migration::ListParser.valid? "a\nb" ).to be_truthy
   end
-
-  it 'parses the elements to an array' do
-    parsed = Migration::ListParser.parse( @data )
-    expect( parsed[ 'default' ][ 'conf' ][ 'data.conf' ].class? Array ).to be_truthy
-    expect( parsed[ 'local' ][ 'conf' ][ 'web.conf' ].class? Array ).to be_truthy
-    expect( parsed[ 'meta' ][ 'conf' ][ 'local.meta' ].class? Array ).to be_truthy
-    expect( parsed[ 'meta' ][ 'conf' ][ 'default.meta' ].class? Array ).to be_truthy
-  end
-
 end
+
+# describe 'Migration Path Parsing' do
+#   it 'parses a file list to a nested hash' do
+#     expect( Migration::ListParser.parse( @data )['local'].key? 'conf' ).to be_truthy
+#   end
+#
+#   it 'parses the elements to an array' do
+#     parsed = Migration::ListParser.parse( @data )
+#     expect( parsed[ 'default' ][ 'conf' ][ 'data.conf' ].class? Array ).to be_truthy
+#     expect( parsed[ 'local' ][ 'conf' ][ 'web.conf' ].class? Array ).to be_truthy
+#     expect( parsed[ 'meta' ][ 'conf' ][ 'local.meta' ].class? Array ).to be_truthy
+#     expect( parsed[ 'meta' ][ 'conf' ][ 'default.meta' ].class? Array ).to be_truthy
+#   end
+#
+# end
 
 describe 'Migration Server Connection' do
 
