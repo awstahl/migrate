@@ -27,9 +27,3 @@ slist = Migration::Parser.parse porter.get( flist.first )
 ...
 ```
 
-#### TODO
-
-1. Bug extermination
-2. Add configuration instance
-3. Add server manager class
-4. Add option parsers for CLI
