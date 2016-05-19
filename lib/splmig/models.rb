@@ -5,13 +5,7 @@
 #  This is a set of classes that models splunk config data.
 
 
-# But first, some sugar...
-class Object
-  def class?(klass)
-    self.class == klass
-  end
-end
-
+# TODO: Don't think this does what you think it does...
 class Hash
 
   def to_paths(prefix=nil, stack=[])
@@ -20,7 +14,7 @@ class Hash
     self.each do |k,v|
       stack << k
 
-      if v.class? Hash
+      if v.is_a? Hash
         out += v.to_paths prefix, stack
       else
         out += ( prefix ? prefix + '/' : '' ) + stack.join('/') + "\n"
@@ -35,7 +29,7 @@ end
 class String
   def to_uri
     require 'uri'
-    URI.encode self
+    URI.encode( self ).gsub( ":", "%3A" ).gsub( "*", "%2A" )
   end
 
   def to_plain
@@ -60,7 +54,7 @@ module Migration
       end
 
       def ini?(ini)
-        ini =~ /^\[.+\n.+=.+/m
+        ini =~ /^\[.+\]\n.+=.+/m and not conf? ini
       end
 
       def yaml?(yml)
@@ -68,15 +62,13 @@ module Migration
       end
 
       def conf?(conf)
-        conf =~ /\n\n/
+        conf =~ /.+\n\n/
       end
 
       def list?(list)
-        list =~ /\n/ and list !~ /\n\n/
+        list =~ /\n/ and not conf? list
       end
-
     end
-
   end
 
   # Options are passed at runtime
@@ -113,10 +105,10 @@ module Migration
   class Artifact
     attr_accessor :parser, :source
 
-    def initialize(source='', parser=nil)
+    def initialize(source='', parser=Migration::Parser)
       @source = source
       @data = {}
-      @parser = parser || Migration::Parser
+      @parser = parser
       yield self if block_given?
     end
 
@@ -129,11 +121,15 @@ module Migration
     end
 
     def []=(key, value)
-      @data[ key ] = value
+      @data[ key.to_sym ] = value
     end
 
     def keys
       @data.keys
+    end
+
+    def key?(key)
+      @data.key? key
     end
 
     def parse
@@ -145,13 +141,13 @@ module Migration
     end
 
     def to_s
-      "[#{ @data[ :name ] }]\n" + data_to_s
+      "[#{ @data[ :name ] }]\n" + data_to_s + "\n"
     end
 
     def data_to_s
       out = ''
-      @data.each do |k,v|
-        out += "#{ k } = #{ v }\n" unless k == :name
+      @data.keys.sort.each do |key|
+        out += "#{ key } = #{ @data[ key ]}\n" unless key == :name
       end
       out
     end
@@ -164,10 +160,6 @@ module Migration
     def initialize(source = '', parser = nil)
       raise InvalidPath unless valid? source
       super source, parser
-    end
-
-    def [](key)
-      @data[key]
     end
 
     def list
@@ -217,13 +209,11 @@ module Migration
       end
 
       def valid?(stanza)
-        # @lines = stanza.split "\n"
-        # @lines.first =~ /^\[.+\]$/
         Valid.ini? stanza
       end
 
       def name
-        @results[:name] = @lines.shift[/(?<=\[).+(?=\])/]
+        @results[ :name ] = @lines.shift[ /(?<=\[).+(?=\])/ ]
       end
       private :name
 

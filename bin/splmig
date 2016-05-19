@@ -1,5 +1,7 @@
 #!/usr/bin/env ruby
 
+# TODO: Finish coding up an adequate CLI interface...
+
 # This script provides a CLI interface to the
 # Migration module in models.rb.
 
@@ -33,10 +35,15 @@ Commands:
 
   migrate - execute migration rules on artifacts
 
-  deploy - deploy a generated conf with artifacts to a server
+  deploy - deploy a generated conf with artifacts to a remote host
 
 Options:
+-a <application>
 -c <path> - Config file
+-h <host>
+-k <keyfile>
+-m <splunk home>
+-u <user>
 
 
 Some desired command idioms:

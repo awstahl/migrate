@@ -1,0 +1,16 @@
+
+
+
+What do we need to know to fetch data from a server?
+
+host
+user
+keyfile
+splunk home
+filename
+
+Tasks that need implementing:
+
+- fetch & parse a file (artify)
+- load a server/conn conf; where to store data required to connect?
+- better conf printing

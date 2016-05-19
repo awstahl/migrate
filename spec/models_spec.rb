@@ -1,13 +1,9 @@
 require 'rspec'
-require "#{ File.dirname __FILE__ }/../lib/models.rb"
+require "#{ File.dirname __FILE__ }/../lib/splmig/models.rb"
 
 # TODO: Moar tests
 
 describe 'Some Sugar' do
-
-  it 'adds  #class? sugar' do
-    expect( ''.class? String ).to be true
-  end
 
   it 'flattens hashes to paths' do
     hsh = { 'default' => { 'app.conf' => [] }, 'local' => { 'auth.conf' => [] }, 'meta' => { 'local.meta' => [] } }
@@ -153,13 +149,26 @@ describe 'Migration Artifact' do
     expect( @art.keys ).to include( :search )
   end
 
+  it 'can verify a key' do
+    expect( @art.key? :search ).to be_truthy
+  end
+
   it 'yields itself for migration' do
     @art.migrate { |a| a[ :name ] = 'migrated' }
     expect( @art.name ).to eq( 'migrated' )
   end
 
   it 'can print itself formatted' do
-    expect( @art.to_s ).to eq( "[artifact name]\nsearch = index=foobar\n" )
+    expect( @art.to_s ).to eq( "[artifact name]\nsearch = index=foobar\n\n" )
+  end
+
+  it 'prints in alpha order by keys' do
+    @str.parser = @parser
+    @str.parse
+    @str[ :cat ] = 'bar'
+    @str[ :manx ] = 'zoo'
+    @str[ :abc ] = 'foo'
+    expect( @str.to_s ).to eq( "[artifact name]\nabc = foo\ncat = bar\nmanx = zoo\nsearch = index=foobar\n\n")
   end
 
 end
@@ -257,11 +266,11 @@ describe 'Migration Stanza Parsing' do
   end
 
   it 'parses an ini string into a hash' do
-    expect( Migration::StanzaParser.parse @ini ).to include( name: 'artifact name' , owner: 'admin', search: 'index=foobar' )
+    expect( Migration::StanzaParser.parse @ini ).to include( name: 'artifact name', owner: 'admin', search: 'index=foobar' )
   end
 
   it 'parses multiline statements' do
-    ini = "[artifact name]\nowner = admin\nsearch = index=foobar some | \\nsearch terms here\n\n"
+    ini = "[artifact name]\nowner = admin\nsearch = index=foobar some | \\nsearch terms here"
     expect( Migration::StanzaParser.parse ini ).to include( search: 'index=foobar some | \\nsearch terms here' )
   end
 
