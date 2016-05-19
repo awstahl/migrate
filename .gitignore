@@ -1,8 +1,10 @@
 *.gen
 *.tgz
 *.log
-*-swp
+*swp
 *.meta
 *.conf
 .idea
 tmp/
+*.gem
+
