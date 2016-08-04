@@ -129,11 +129,6 @@ describe 'Migration Application' do
     expect( @appp[ 'local' ][ 'auth.conf' ] ).to eq([])
     expect( @appp[ 'meta' ][ 'local.meta' ] ).to eq([])
   end
-
-  it 'prints a file list' do
-    @appp.parse
-    expect( @appp.list ).to eq( "#{ @base }/default/app.conf\n#{ @base }/local/auth.conf\n#{ @base }/meta/local.meta\n" )
-  end
 end
 
 describe 'Migration Server Connection' do
@@ -223,12 +218,12 @@ end
 describe 'Migration Server Itself' do
 
   before :each do
-    @default = Migration::Server.new
     @conf = { host: 'localhost', user: 'splunk' }
+    #@default = Migration::Server.new @conf
   end
 
   it 'exists' do
-    expect( Object.const_defined? 'Migration::Server::Conf' ).to be_truthy
+    expect( Object.const_defined? 'Migration::Server' ).to be_truthy
   end
 
   it 'is accessible' do

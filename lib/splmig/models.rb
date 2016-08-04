@@ -71,10 +71,6 @@ module Migration
       super source, parser
     end
 
-    def list
-      @data.to_paths @source
-    end
-
     def valid?(path)
       Valid.absolute_path? path
     end
@@ -95,7 +91,6 @@ module Migration
 
     def map_conf(conf)
       @conf.members.each do |member|
-        # wat?
         eval "@conf.#{ member.to_s } = conf[ member ] if conf.key? member"
       end
     end
