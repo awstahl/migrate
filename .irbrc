@@ -9,4 +9,3 @@ def artify(it)
   end
   out
 end
-
