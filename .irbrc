@@ -1,4 +1,4 @@
-require './lib/splmig/models.rb'
+require './lib/splmig.rb'
 
 def artify(it)
   out = {}

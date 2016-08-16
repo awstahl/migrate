@@ -10,91 +10,40 @@ require "#{ File.dirname __FILE__ }/options"
 
 module Migration
 
-  # An Artifact is a decorated hash
+  # An Artifact is a parsed data container
   class Artifact
-    attr_accessor :parser, :source
+    attr_reader :data, :name, :source
 
-    def initialize(source='', parser=Migration::Parser)
+    def initialize(source)
       @source = source
-      @data = {}
-      @parser = parser
-      yield self if block_given?
+      @data = nil
     end
 
-    def name
-      @data[ :name ]
+    def parse(parser=Parser)
+      @data = parser.parse @source
+      @name = @data.delete :name
     end
-
-    def [](key)
-      @data[ key ]
-    end
-
-    def []=(key, value)
-      @data[ key.to_sym ] = value
-    end
-
-    def keys
-      @data.keys
-    end
-
-    def key?(key)
-      @data.key? key
-    end
-
-    def parse
-      @data = @parser.parse @source
-    end
-
-    def migrate
-      yield @data if block_given?
-    end
-
-    def to_s
-      "[#{ @data[ :name ] }]\n" + data_to_s + "\n"
-    end
-
-    def data_to_s
-      out = ''
-      @data.keys.sort.each do |key|
-        out += "#{ key } = #{ @data[ key ]}\n" unless key == :name
-      end
-      out
-    end
-    private :data_to_s
-
   end
 
-  class Application < Artifact
+  # An application is...
+  class Application
 
-    def initialize(source = '', parser = nil)
-      raise InvalidPath unless valid? source
-      super source, parser
+    def initialize()
+      @name = ''
+      @files = {}
     end
-
-    def valid?(path)
-      Valid.absolute_path? path
-    end
-    private :valid?
 
   end
 
   class Server
+    attr_accessor :conf, :conn, :porter
 
-    attr_accessor :conf
-    Conf = Struct.new :file, :host, :key, :path, :user
-
-    def initialize(conf=nil)
-      @conf = Conf.new
-      map_conf conf
+    def initialize(conf={})
+      @conf = conf
       yield @conf if block_given?
+      @conn = nil
+      @porter = nil
     end
-
-    def map_conf(conf)
-      @conf.members.each do |member|
-        eval "@conf.#{ member.to_s } = conf[ member ] if conf.key? member"
-      end
-    end
-    private :map_conf
 
     # Opens the connection to the remote server using injected proto
     class Connection
