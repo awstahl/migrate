@@ -35,4 +35,11 @@ class Hash
     end
     out
   end
+
+  def deep_merge(other)
+    self.merge! other do | k, v1, v2|
+      (Hash === v1 && Hash === v2) ? v1.deep_merge(v2) : v1
+    end
+  end
+
 end
