@@ -16,3 +16,23 @@ class String
     URI.decode self
   end
 end
+
+class Hash
+
+  def to_paths(prefix=nil, stack=[])
+    out=''
+
+    self.each do |k,v|
+      stack << k
+
+      if v.is_a? Hash
+        out += v.to_paths prefix, stack
+      else
+        out += ( prefix ? prefix + '/' : '' ) + stack.join('/') + "\n"
+      end
+
+      stack.pop
+    end
+    out
+  end
+end
