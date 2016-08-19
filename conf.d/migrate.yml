@@ -1,8 +1,9 @@
-ssh:
-  tdcvlog01:
-    keyfile: '/home/awstahl/keys/splunk.pem'
-    user: 'root'
-migration:
-  - search
-  - eventtypes
-  - tags
+---
+:splunk:
+  :apps: '/etc/apps'
+  :home: '/opt/splunk'
+  :system: '/etc/system'
+:connection:
+  :host: tewuvadspl06.tew.sephoraus.com
+  :user: splunk
+  :keyfile: '/home/awstahl/keys/splunk.pem'
