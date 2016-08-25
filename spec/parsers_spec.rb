@@ -111,14 +111,13 @@ end
 describe 'Migration File List Parsing' do
 
   before :all do
-    @data = "./default/conf/data.conf\n./local/conf/web.conf\n/meta/conf/local.meta\n/meta/conf/default.meta"
+    @data = "default/conf/data.conf\nlocal/conf/web.conf\nmeta/conf/local.meta\nmeta/conf/default.meta"
   end
 
   it 'parses a multiline string to an array' do
-    expect( Migration::ListParser.parse @data ).to include( './default/conf/data.conf' )
-    expect( Migration::ListParser.parse @data ).to include( './local/conf/web.conf' )
-    expect( Migration::ListParser.parse @data ).to include( '/meta/conf/local.meta' )
-    expect( Migration::ListParser.parse @data ).to include( '/meta/conf/default.meta' )
+    %w[ default/conf/data.conf local/conf/web.conf meta/conf/local.meta meta/conf/default.meta ].each do |file|
+      expect( Migration::ListParser.parse @data ).to include( file )
+    end
   end
 
   it 'performs simple validation' do
@@ -130,17 +129,22 @@ describe 'Migration File List Parsing' do
   end
 end
 
-# describe 'Migration Path Parsing' do
-#   it 'parses a file list to a nested hash' do
-#     expect( Migration::ListParser.parse( @data )['local'].key? 'conf' ).to be_truthy
-#   end
-#
-#   it 'parses the elements to an array' do
-#     parsed = Migration::ListParser.parse( @data )
-#     expect( parsed[ 'default' ][ 'conf' ][ 'data.conf' ].class? Array ).to be_truthy
-#     expect( parsed[ 'local' ][ 'conf' ][ 'web.conf' ].class? Array ).to be_truthy
-#     expect( parsed[ 'meta' ][ 'conf' ][ 'local.meta' ].class? Array ).to be_truthy
-#     expect( parsed[ 'meta' ][ 'conf' ][ 'default.meta' ].class? Array ).to be_truthy
-#   end
-#
-# end
+describe 'Migration Path Parsing' do
+
+  before :all do
+    @path = "/path/to/nowhere"
+  end
+
+  it "parses a path to a hash" do
+    expect( Migration::PathParser.parse @path ).to eq({ 'path' => { 'to' => { 'nowhere' => {}}}})
+  end
+
+  it 'validates the path' do
+    expect( Migration::PathParser.valid? 'this is not a path' ).to be_falsey
+  end
+
+  it 'returns an empty hash for invalid paths' do
+    expect( Migration::PathParser.parse 'bin/' ).to eq({})
+  end
+
+end

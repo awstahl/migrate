@@ -140,25 +140,33 @@ module Migration
         Valid.list? list
       end
     end
+  end
 
-    # The PathParser creates a nested hash with directories as keys
-    #   add path[ /[A-z0-9].+$/ ].split( '/' ), @out
+  class PathParser < Parser
 
-    #   def add(path, out)
-    #     latest = path.shift
-    #
-    #     if path.size == 0
-    #       out[ latest ] = []
-    #     else
-    #       out[ latest ] = {} unless out.key? latest
-    #       add path, out[ latest ]
-    #     end
-    #     out
-    #
-    #   end
-    #   private :add
+    class << self
+      def parse(path)
+        out = {}
+        return out unless valid? path
 
+        dirs = path.split '/'
+        dirs.shift if dirs.first == ''
 
+        count = dirs.size - 1
+        pointer = out
+
+        0.upto ( count ) do |i|
+          key = dirs[ i ]
+          pointer[ key ] = {} unless pointer.key? key
+          pointer = pointer[ key ]
+        end
+        out
+      end
+
+      def valid?(path)
+        Valid.relative_path? path or Valid.absolute_path? path
+      end
+    end
   end
 
   class ParserNotFound < Exception; end
