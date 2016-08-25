@@ -25,27 +25,51 @@ module Migration
     end
   end
 
-  # An application is...
+  # An application is an encapsulation of the
+  # data within a given structured subdirectory
+  # As little assumptions about the subdir as
+  # possible are made.
   class Application
+    attr_reader :conf, :name, :root
 
-    def initialize()
-      @name = ''
-      @files = {}
+    def initialize(conf)
+      @name = conf[ :name ]
+      @root = conf[ :root ]
+      parse conf[ :paths ]
+    end
+
+    def parse(paths)
+      @conf = {}
+      paths.each do |path|
+        @conf.deep_merge PathHashParser.parse( path )
+      end
+    end
+    private :parse
+
+    def configure(file, content)
+      keys = Parser.parse file
+      pointer = @conf
+
+      keys.each do |key|
+        pointer = pointer[ key ] unless keys.last == key
+      end
+
+      pointer[ keys.last ] = content
     end
 
   end
 
   class Server
     attr_accessor :conf, :conn, :porter
+    alias :connection :conn
 
     def initialize(conf={})
       @conf = conf
-      yield @conf if block_given?
-      @conn = nil
-      @porter = nil
+      @conn = Connection.new @conf[ :connection ]
+      @porter = Porter.new @conn
     end
 
-    # Opens the connection to the remote server using injected proto
+    # Opens the connection to the remote server using an injected protocol class
     class Connection
       attr_reader :conf
 
@@ -87,7 +111,7 @@ module Migration
 
       def list(path)
         valid? path
-        @conn.exec "find #{ path } -type f -iname \"*\""
+        @conn.exec( "find #{ path } -type f -iname \"*\"" ).split
       end
 
       def get(file)
@@ -101,4 +125,5 @@ module Migration
   class InvalidConnection < Exception; end
   class InvalidPath < Exception; end
   class MissingKeyfile < Exception; end
+  class MissingConnection < Exception; end
 end

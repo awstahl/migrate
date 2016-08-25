@@ -51,6 +51,57 @@ end
 
 describe 'Migration Application' do
 
+  before :all do
+    @paths = []
+    @paths << 'bin/deploy.rb'
+    @paths << 'bin/script.rb'
+    @paths << "default/app.conf"
+    @paths << 'default/data/models/model.xml'
+    @paths << 'default/data/ui/nav/bar.xml'
+    @paths << 'default/data/ui/views/main.xml'
+    @paths << 'local/inputs.conf'
+    @conf = {
+        name: 'RSpec Test App',
+        paths: @paths,
+        root: '/path/to/apps/rspec_test_app'
+    }
+  end
+
+  before :each do
+    @app = Migration::Application.new @conf
+  end
+
+  it 'exists' do
+    expect( @app ).to be_truthy
+  end
+
+  it 'has a name' do
+    expect( @app.name ).to eq( 'RSpec Test App' )
+  end
+
+  it 'has a root directory' do
+    expect( @app.root ).to eq( '/path/to/apps/rspec_test_app' )
+  end
+
+  it 'has a config hash' do
+    expect( @app.conf.keys ).to eq( %w[ bin default local ])
+  end
+
+  it 'can be configured' do
+    @app.configure 'local/inputs.conf', 'some file contents'
+    expect( @app.conf[ 'local' ][ 'inputs.conf' ]).to eq( 'some file contents' )
+  end
+
+  it 'really can be configured' do
+    @app.configure 'default/data/models/model.xml', "<xml>\n<head>some xml data</head>\n</xml>"
+    expect( @app.conf[ 'default' ][ 'data' ][ 'models' ][ 'model.xml' ]).to eq( "<xml>\n<head>some xml data</head>\n</xml>" )
+  end
+
+  it 'can be configured with arbitrary content' do
+    @app.configure 'default/data/models/model.xml', 3.14159
+    expect( @app.conf[ 'default' ][ 'data' ][ 'models' ][ 'model.xml' ]).to eq( 3.14159 )
+  end
+
 end
 
 describe 'Migration Server Connection' do
@@ -120,7 +171,7 @@ describe 'Migration Server Porter' do
   end
 
   it 'lists files using a connection' do
-    expect( @porter.list '/path/to/files' ).to eq( "./sub/file1.txt\n./sub/file2.txt\n./sub2/file3.lst" )
+    expect( @porter.list '/path/to/files' ).to eq( %w[./sub/file1.txt ./sub/file2.txt ./sub2/file3.lst ])
   end
 
   it 'prints the contents of a file' do
@@ -130,8 +181,17 @@ end
 
 describe 'Migration Server Itself' do
 
+  def mocks
+    @remote = instance_double 'Net::SSH::Connection::Session'
+    allow( @remote ).to receive( :exec! ) { 'll'}.and_return '/path/to/files...'
+
+    @proto = class_double 'Net::SSH'
+    allow( @proto ).to receive( :start ).and_return @remote
+  end
+
   before :each do
-    @conf = { host: 'localhost', user: 'splunk' }
+    mocks
+    @conf = { connection: { host: 'localhost', user: 'splunk', keyfile: "#{ File.dirname __FILE__ }/data/sample.key", proto: @proto }}
     @srv = Migration::Server.new @conf
   end
 
@@ -144,25 +204,18 @@ describe 'Migration Server Itself' do
   end
 
   it 'accepts a hash' do
-    expect( @srv.conf[ :host ]).to eq( 'localhost' )
-  end
-
-  it 'accepts a block' do
-    srv = Migration::Server.new do |conf|
-      conf[ :file ] = '/path/to/file.conf'
-      conf[ :host ] = 'example.com'
-      conf[ :key ] = '/path/to/key.pem'
-      conf[ :path ] = '/path/to'
-      conf[ :user ] = 'someone'
-    end
-    expect( srv.conf[ :file ] == '/path/to/file.conf' )
-    expect( srv.conf[ :host ] == 'example.com' )
-    expect( srv.conf[ :key ] == '/path/to/key.pem' )
-    expect( srv.conf[ :path ] == '/path/to' )
-    expect( srv.conf[ :user ] == 'someone' )
+    expect( @srv.conf[ :connection ][ :host ]).to eq( 'localhost' )
   end
 
   it 'has a connection' do
+   expect( @srv.connection ).to be_truthy
+  end
+
+  it 'has a porter' do
+    expect( @srv.porter ).to be_truthy
+  end
+
+  it 'can fetch an application' do
 
   end
 
