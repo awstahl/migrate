@@ -33,7 +33,23 @@ describe 'Some Sugar' do
   end
 
   it 'can prepend a prefix when printing paths' do
-    expect( @hash.to_paths '/opt').to eq( "/opt/foo/bar.txt\n/opt/foo/baz.txt\n/opt/lorem/ipsum/roman.conf\n/opt/lorem/ipsum/greek.conf\n/opt/lorem/amit\n" )
+    expect( @hash.to_paths '/opt/').to eq( "/opt/foo/bar.txt\n/opt/foo/baz.txt\n/opt/lorem/ipsum/roman.conf\n/opt/lorem/ipsum/greek.conf\n/opt/lorem/amit\n" )
+  end
+
+  it 'handles empty hashes' do
+    h = {
+        "opt" => {
+            "foo" => {
+                "bar" => {},
+                "baz" => {}
+            },
+            "lorem" => {
+                "ipsum" => {}
+            },
+            "file"=>{}
+        }
+    }
+    expect( h.to_paths ).to eq( "opt/foo/bar\nopt/foo/baz\nopt/lorem/ipsum\nopt/file\n" )
   end
 
   it 'can deep merge nested hashes' do
@@ -63,7 +79,7 @@ describe 'Some Sugar' do
             amit: 'dolor'
         },
         bar: 'none'
-                                            })
-  end
+                          })
+end
 
 end

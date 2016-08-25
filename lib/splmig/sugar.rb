@@ -25,10 +25,10 @@ class Hash
     self.each do |k,v|
       stack << k
 
-      if v.is_a? Hash
+      if v.is_a? Hash and not v.empty?
         out += v.to_paths prefix, stack
       else
-        out += ( prefix ? prefix + '/' : '' ) + stack.join('/') + "\n"
+        out += ( prefix ? prefix : '' ) + stack.join('/') + "\n"
       end
 
       stack.pop
