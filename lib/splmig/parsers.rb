@@ -146,12 +146,26 @@ module Migration
 
     class << self
       def parse(path)
-        out = {}
-        return out unless valid? path
-
+        return [] unless valid? path
         dirs = path.split '/'
         dirs.shift if dirs.first == ''
+        dirs
+      end
 
+      def valid?(path)
+        Valid.relative_path? path or Valid.absolute_path? path
+      end
+    end
+  end
+
+  class PathHashParser
+
+    class << self
+      def parse(path)
+        out = {}
+        return out unless PathParser.valid? path
+
+        dirs = PathParser.parse path
         count = dirs.size - 1
         pointer = out
 
@@ -163,9 +177,6 @@ module Migration
         out
       end
 
-      def valid?(path)
-        Valid.relative_path? path or Valid.absolute_path? path
-      end
     end
   end
 

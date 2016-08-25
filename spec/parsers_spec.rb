@@ -135,16 +135,32 @@ describe 'Migration Path Parsing' do
     @path = "/path/to/nowhere"
   end
 
-  it "parses a path to a hash" do
-    expect( Migration::PathParser.parse @path ).to eq({ 'path' => { 'to' => { 'nowhere' => {}}}})
+  it 'parses a path to an array' do
+    expect( Migration::PathParser.parse @path ).to eq( %w[ path to nowhere ])
   end
 
   it 'validates the path' do
     expect( Migration::PathParser.valid? 'this is not a path' ).to be_falsey
   end
 
+  it 'returns an empty array for invalid paths' do
+    expect( Migration::PathParser.parse 'bin/' ).to eq([])
+  end
+
+end
+
+describe 'Migration Path Hash Parsing' do
+
+  before :all do
+    @path = "/path/to/nowhere"
+  end
+
+  it "parses a path to a hash" do
+    expect( Migration::PathHashParser.parse @path ).to eq({'path' => {'to' => {'nowhere' => {}}}})
+  end
+
   it 'returns an empty hash for invalid paths' do
-    expect( Migration::PathParser.parse 'bin/' ).to eq({})
+    expect( Migration::PathHashParser.parse 'bin/' ).to eq({})
   end
 
 end
