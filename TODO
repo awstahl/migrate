@@ -11,6 +11,11 @@ filename
 
 Tasks that need implementing:
 
+- load a server/conn conf; where to store data required to connect? - DONE
+- some sugar to help the Application class - DONE
+- implement the Application class - IN PROGRESS
 - fetch & parse a file (artify)
-- load a server/conn conf; where to store data required to connect?
 - better conf printing
+- better conf definition
+- printers
+
