@@ -18,6 +18,10 @@ module Migration
         path =~ /^\//
       end
 
+      def relative_path?(path)
+        path.split( '/' ).size > 1
+      end
+
       def ini?(ini)
         ini =~ /^\[.+\]\n.+=.+/m and not conf? ini
       end
@@ -33,6 +37,12 @@ module Migration
       def list?(list)
         list =~ /\n/ and not conf? list
       end
+
+      def path_array?(paths)
+        return false unless paths.is_a? Array
+        paths == paths.select {|path| Valid.relative_path? path }
+      end
+
     end
   end
 

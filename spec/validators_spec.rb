@@ -24,6 +24,14 @@ describe 'Migration Validator' do
     expect( Migration::Valid.absolute_path? 'some/other/path' ).to be_falsey
   end
 
+  it 'validates a relative path' do
+    expect( Migration::Valid.relative_path? 'bin/foo' ).to be_truthy
+  end
+
+  it 'must be a relative file path' do
+    expect( Migration::Valid.relative_path? 'foobar/' ).to be_falsey
+  end
+
   it 'validates an ini string' do
     expect( Migration::Valid.ini? "[Test]\naction.script = 1" ).to be_truthy
   end
@@ -59,4 +67,17 @@ describe 'Migration Validator' do
   it 'rejects a list with empty elements' do
     expect( Migration::Valid.list? "a\n\nb" ).to be_falsey
   end
+
+  it 'validates a path array' do
+    expect( Migration::Valid.path_array? %w[ bin/script.sh bin/doit.rb default/app.conf local/web.conf ]).to be_truthy
+  end
+
+  it 'detects an invalid path array' do
+    expect( Migration::Valid.path_array? %w[ bin/script bin/ ]).to be_falsey
+  end
+
+  it 'detects an invalid array' do
+    expect( Migration::Valid.path_array? 'string' ).to be_falsey
+  end
+
 end
