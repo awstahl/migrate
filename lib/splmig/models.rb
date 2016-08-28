@@ -16,7 +16,7 @@ module Migration
 
     def initialize(source)
       @source = source
-      @data = nil
+      parse
     end
 
     def parse(parser=Parser)
@@ -71,7 +71,6 @@ module Migration
 
   end
 
-
   # A Server is a remote host serving an application.
   # To communicate with the remote host, the Server has
   # a Connection.  To ferry data back from the remote
@@ -86,6 +85,17 @@ module Migration
       @conf = conf
       @conn = Connection.new @conf[ :connection ]
       @porter = Porter.new @conn
+    end
+
+    def fetch(app)
+      @porter.list( app.root ) do |path|
+        contents = @porter.get( path )
+
+        Parser.parse( contents ).each do |stanza|
+          app.configure path, Migration::Artifact.new( stanza )
+        end
+      end
+      apps[ app.name ] = app
     end
 
     # Opens the connection to the remote server using

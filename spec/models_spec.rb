@@ -4,11 +4,18 @@ require "#{ File.dirname __FILE__ }/../lib/splmig/models.rb"
 
 describe 'Migration Artifact' do
 
+  def mocks
+    #@parser = instance_double "Migraiont::Parser"
+    @parser = double
+    allow( @parser ).to receive( :parse ).and_return({ a: 1, b: 2, name: 'mockd' })
+  end
+
   before :all do
     @source = "[artifact name]\nkey = val\n"
   end
 
   before :each do
+    mocks
     @art = Migration::Artifact.new @source
   end
 
@@ -20,18 +27,17 @@ describe 'Migration Artifact' do
     expect( @art.source ).to eq( @source )
   end
 
-  it 'exposes a data container' do
-    expect( @art.data ).to eq( nil )
-  end
-
   it 'uses a default parser to parse' do
-    @art.parse
     expect( @art.data[ :key ]).to eq( 'val' )
   end
 
   it 'parses the name from the source' do
-    @art.parse
     expect( @art.name ).to eq( 'artifact name' )
+  end
+
+  it 'can inject a parser' do
+    @art.parse @parser
+    expect( @art.name ).to eq( 'mockd' )
   end
 
   # it 'can print itself formatted' do
@@ -213,6 +219,10 @@ describe 'Migration Server Itself' do
 
     @proto = class_double 'Net::SSH'
     allow( @proto ).to receive( :start ).and_return @remote
+
+    @app = double
+    allow( @app ).to receive( :name ).and_return 'mockApp'
+    allow( @app ).to receive( :root ).and_return '/path/to/app'
   end
 
   before :each do
@@ -246,7 +256,8 @@ describe 'Migration Server Itself' do
   end
 
   it 'can fetch an application' do
-
+    @srv.fetch @app
+    expect( @srv.apps[ @app.name ]).to eq( @app )
   end
 
 end

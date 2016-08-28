@@ -12,7 +12,7 @@ Gem::Specification.new do |spec|
   spec.description = 'A Splunk migration and deployment tool'
   spec.email = 'alex@testcore.net'
   spec.executables << 'splmig'
-  spec.files = [ 'lib/splmig.rb', 'lib/splmig/models.rb' ]
+  spec.files = %w(lib/splmig.rb lib/splmig/models.rb)
   spec.license = 'MIT'
   spec.homepage = 'http://rubygems.org'
   spec.name = 'splmig'
