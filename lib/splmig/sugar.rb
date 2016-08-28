@@ -8,7 +8,7 @@
 class String
   def to_uri
     require 'uri'
-    URI.encode( self ).gsub( ":", "%3A" ).gsub( "*", "%2A" )
+    URI.encode( self ).gsub(':', '%3A').gsub('*', '%2A')
   end
 
   def to_plain

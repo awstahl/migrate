@@ -55,13 +55,12 @@ describe 'Migration Application' do
     @paths = []
     @paths << 'bin/deploy.rb'
     @paths << 'bin/script.rb'
-    @paths << "default/app.conf"
+    @paths << 'default/app.conf'
     @paths << 'default/data/models/model.xml'
     @paths << 'default/data/ui/nav/bar.xml'
     @paths << 'default/data/ui/views/main.xml'
     @paths << 'local/inputs.conf'
     @conf = {
-        name: 'RSpec Test App',
         paths: @paths,
         root: '/path/to/apps/rspec_test_app'
     }
@@ -76,11 +75,20 @@ describe 'Migration Application' do
   end
 
   it 'has a name' do
-    expect( @app.name ).to eq( 'RSpec Test App' )
+    expect( @app.name ).to eq( 'rspec_test_app' )
   end
 
   it 'has a root directory' do
     expect( @app.root ).to eq( '/path/to/apps/rspec_test_app' )
+  end
+
+  it 'requires a root directory' do
+    conf = { a: 1, b: 2 }
+    expect{ Migration::Application.new conf }.to raise_exception( Migration::MissingPathRoot )
+  end
+
+  it 'has a paths array' do
+    expect( @app.paths ).to eq( @paths )
   end
 
   it 'has a config hash' do
@@ -89,17 +97,27 @@ describe 'Migration Application' do
 
   it 'can be configured' do
     @app.configure 'local/inputs.conf', 'some file contents'
-    expect( @app.conf[ 'local' ][ 'inputs.conf' ]).to eq( 'some file contents' )
+    expect( @app.conf[ 'local' ][ 'inputs.conf' ]).to include( 'some file contents')
   end
 
   it 'really can be configured' do
     @app.configure 'default/data/models/model.xml', "<xml>\n<head>some xml data</head>\n</xml>"
-    expect( @app.conf[ 'default' ][ 'data' ][ 'models' ][ 'model.xml' ]).to eq( "<xml>\n<head>some xml data</head>\n</xml>" )
+    expect( @app.conf[ 'default' ][ 'data' ][ 'models' ][ 'model.xml' ]).to include( "<xml>\n<head>some xml data</head>\n</xml>" )
   end
 
   it 'can be configured with arbitrary content' do
     @app.configure 'default/data/models/model.xml', 3.14159
-    expect( @app.conf[ 'default' ][ 'data' ][ 'models' ][ 'model.xml' ]).to eq( 3.14159 )
+    expect( @app.conf[ 'default' ][ 'data' ][ 'models' ][ 'model.xml' ]).to include( 3.14159 )
+  end
+
+  it 'adds new paths to the paths array' do
+    @app.configure 'some/new/file.conf', 'Where is the proud ship?'
+    expect( @app.paths ).to include( 'some/new/file.conf' )
+  end
+
+  it 'adds new content to a new file' do
+    @app.configure 'some/new/file.conf', 'Where is the proud ship?'
+    expect( @app.conf[ 'some' ][ 'new' ][ 'file.conf' ]).to include( 'Where is the proud ship?' )
   end
 
 end
@@ -167,15 +185,23 @@ describe 'Migration Server Porter' do
   end
 
   it 'requires an exec method' do
-    expect { Migration::Server::Porter.new Stub.new }.to raise_exception( 'Migration::InvalidConnection' )
+    expect { Migration::Server::Porter.new Stub.new }.to raise_exception( Migration::InvalidConnection )
   end
 
   it 'lists files using a connection' do
     expect( @porter.list '/path/to/files' ).to eq( %w[./sub/file1.txt ./sub/file2.txt ./sub2/file3.lst ])
   end
 
+  it 'requires an actual file path' do
+    expect{ @porter.list 'lorem ipsum' }.to raise_exception( Migration::InvalidPath )
+  end
+
   it 'prints the contents of a file' do
     expect( @porter.get '/path/to/file' ).to eq( 'all your base are belong to us' )
+  end
+
+  it 'requires a full path to print' do
+    expect{ @porter.get 'nothing' }.to raise_exception( Migration::InvalidPath )
   end
 end
 
@@ -213,6 +239,10 @@ describe 'Migration Server Itself' do
 
   it 'has a porter' do
     expect( @srv.porter ).to be_truthy
+  end
+
+  it 'has an application hash' do
+    expect( @srv.apps ).to eq({})
   end
 
   it 'can fetch an application' do

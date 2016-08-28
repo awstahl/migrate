@@ -38,15 +38,15 @@ describe 'Some Sugar' do
 
   it 'handles empty hashes' do
     h = {
-        "opt" => {
-            "foo" => {
-                "bar" => {},
-                "baz" => {}
+        'opt' => {
+            'foo' => {
+                'bar' => {},
+                'baz' => {}
             },
-            "lorem" => {
-                "ipsum" => {}
+            'lorem' => {
+                'ipsum' => {}
             },
-            "file"=>{}
+            'file' =>{}
         }
     }
     expect( h.to_paths ).to eq( "opt/foo/bar\nopt/foo/baz\nopt/lorem/ipsum\nopt/file\n" )

@@ -72,7 +72,7 @@ describe 'Migration Yaml Parsing' do
   end
 
   it 'parses a yaml string' do
-    expect( Migration::YamlParser.parse @str ).to include( 'migration' => ['search', 'eventtypes' ] )
+    expect( Migration::YamlParser.parse @str ).to include( 'migration' => %w(search eventtypes))
   end
 
   it 'is a parser' do
@@ -132,7 +132,7 @@ end
 describe 'Migration Path Parsing' do
 
   before :all do
-    @path = "/path/to/nowhere"
+    @path = '/path/to/nowhere'
   end
 
   it 'parses a path to an array' do
@@ -152,11 +152,11 @@ end
 describe 'Migration Path Hash Parsing' do
 
   before :all do
-    @path = "/path/to/nowhere"
+    @path = '/path/to/nowhere'
   end
 
-  it "parses a path to a hash" do
-    expect( Migration::PathHashParser.parse @path ).to eq({'path' => {'to' => {'nowhere' => {}}}})
+  it 'parses a path to a hash' do
+    expect( Migration::PathHashParser.parse @path ).to eq({ 'path' => { 'to' => { 'nowhere' => {} }}})
   end
 
   it 'returns an empty hash for invalid paths' do

@@ -5,6 +5,7 @@
 # Classes to parse various data formats
 # into native ruby data structures
 
+# noinspection RubyResolve
 require "#{ File.dirname __FILE__ }/validators"
 
 module Migration

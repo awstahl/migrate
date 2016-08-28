@@ -61,7 +61,7 @@ describe 'Migration Validator' do
   end
 
   it 'rejects a non-list' do
-    expect( Migration::Valid.list? "abc" ).to be_falsey
+    expect( Migration::Valid.list? 'abc').to be_falsey
   end
 
   it 'rejects a list with empty elements' do
