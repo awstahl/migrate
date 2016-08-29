@@ -5,7 +5,6 @@ require "#{ File.dirname __FILE__ }/../lib/splmig/models.rb"
 describe 'Migration Artifact' do
 
   def mocks
-    #@parser = instance_double "Migraiont::Parser"
     @parser = double
     allow( @parser ).to receive( :parse ).and_return({ a: 1, b: 2, name: 'mockd' })
   end
@@ -214,18 +213,47 @@ end
 describe 'Migration Server Itself' do
 
   def mocks
+    remote
+    proto
+    app
+    @container = double
+    loop_paths
+  end
+
+  def remote
     @remote = instance_double 'Net::SSH::Connection::Session'
     allow( @remote ).to receive( :exec! ) { 'll'}.and_return '/path/to/files...'
+  end
 
+  def proto
     @proto = class_double 'Net::SSH'
     allow( @proto ).to receive( :start ).and_return @remote
+  end
 
+  def app
     @app = double
     allow( @app ).to receive( :name ).and_return 'mockApp'
     allow( @app ).to receive( :root ).and_return '/path/to/app'
+    allow( @app ).to receive( :paths ).and_return @paths.keys
+  end
+
+  def loop_paths
+    @paths.each do |path, text|
+      allow( @remote ).to receive( :exec! ).with( "cat #{ path }" ).and_return text
+      allow( @app ).to receive( :configure ).with( path, anything()).and_return text
+
+      text.each do |item|
+        allow( @container ).to receive( :new ).with( item ).and_return item
+      end
+    end
   end
 
   before :each do
+    @paths = {
+        '/path/to/app/default/file.conf' => %w[ Dozens of tragedies will be lost in beauties like sonic showers in understandings ],
+        '/path/to/app/default/other.conf' => %w[ Not heavens or hell, absorb the samadhi. ],
+        '/path/to/app/local/file.conf' => %w[ Yarr, lively fortune! ]
+    }
     mocks
     @conf = { connection: { host: 'localhost', user: 'splunk', keyfile: "#{ File.dirname __FILE__ }/data/sample.key", proto: @proto }}
     @srv = Migration::Server.new @conf
@@ -235,7 +263,7 @@ describe 'Migration Server Itself' do
     expect( @srv ).to be_truthy
   end
 
-  it 'is accessible' do
+  it 'has a configuration' do
     expect( @srv.respond_to? :conf ).to be_truthy
   end
 
@@ -255,9 +283,18 @@ describe 'Migration Server Itself' do
     expect( @srv.apps ).to eq({})
   end
 
-  it 'can fetch an application' do
+  it 'can fetch app configuration' do
     @srv.fetch @app
     expect( @srv.apps[ @app.name ]).to eq( @app )
+  end
+
+  it 'can fetch an application with an injected container' do
+    @srv.fetch @app, @container
+    expect( @srv.apps[ @app.name ]).to eq( @app )
+  end
+
+  it 'fetch will populate the app config' do
+    # TODO
   end
 
 end

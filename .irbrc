@@ -1,11 +1,10 @@
 require './lib/splmig.rb'
 
-def artify(it)
-  out = {}
-  it.each do |stanza|
-    artifact = Migration::Artifact.new stanza
-    artifact.parse
-    out[ artifact.name ] = artifact
-  end
-  out
-end
+Conf = { connection: {
+  host: 'tewuvadspl06.tew.sephoraus.com',
+  user: 'splunk',
+  keyfile: '/home/awstahl/Keys/splunk.pem'
+  }
+}
+
+Path = '/opt/splunk/etc/system'

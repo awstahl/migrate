@@ -1,21 +1,12 @@
-
-
-
-What do we need to know to fetch data from a server?
-
-host
-user
-keyfile
-splunk home
-filename
-
 Tasks that need implementing:
 
 - load a server/conn conf; where to store data required to connect? - DONE
 - some sugar to help the Application class - DONE
-- implement the Application class - IN PROGRESS
-- fetch & parse a file (artify)
-- better conf printing
-- better conf definition
+- implement the Application class - DONE
+- fetch & parse a file (artify) - DONE
+- better conf definition - IN PROGRESS
+- general debugging - IN PROGRESS
+- manager class
+- options class
 - printers
 

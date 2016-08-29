@@ -21,10 +21,14 @@ module Migration
       end
 
       def parse(it)
+
+        # Required to prevent calls to #valid? to fail awkwardly
+        return nil unless it
+
         klass = Parser.parsers.find do |parser|
           parser.valid? it
         end
-        klass ? klass.parse( it ) : raise( ParserNotFound )
+        klass ? klass.parse( it ) : it
       end
     end
   end
@@ -177,9 +181,6 @@ module Migration
         end
         out
       end
-
     end
   end
-
-  class ParserNotFound < Exception; end
 end

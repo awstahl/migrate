@@ -1,3 +1,10 @@
+#
+#  File: parsers_spec.rb
+#  Author: alex@testcore.net
+#
+# Test of Classes to parse various data formats
+# into native ruby data structures
+
 require 'rspec'
 require "#{ File.dirname __FILE__ }/../lib/splmig/parsers"
 
@@ -22,6 +29,11 @@ describe 'Migration Parsing' do
     expect( Object.const_defined? 'Migration::Parser' ).to be_truthy
   end
 
+  it 'catches nil values' do
+    expect( Migration::Parser.parse nil ).to eq( nil )
+  end
+
+
   it 'tracks its parsers' do
     expect( Migration::Parser.parsers.include? Migration::Foo ).to be_truthy
   end
@@ -30,8 +42,8 @@ describe 'Migration Parsing' do
     expect( Migration::Parser.parse 'passme' ).to eq( 'pass' )
   end
 
-  it 'raises an exception if a parser is not found' do
-    expect { Migration::Parser.parse 'invalid' }.to raise_exception( 'Migration::ParserNotFound' )
+  it 'returns the original value if no parser was found' do
+    expect( Migration::Parser.parse 'no parsers for me' ).to eq( 'no parsers for me' )
   end
 
 end

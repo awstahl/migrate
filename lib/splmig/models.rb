@@ -21,7 +21,7 @@ module Migration
 
     def parse(parser=Parser)
       @data = parser.parse @source
-      @name = @data.delete :name
+      @name = @data.delete 'name'
     end
   end
 
@@ -87,12 +87,18 @@ module Migration
       @porter = Porter.new @conn
     end
 
-    def fetch(app)
-      @porter.list( app.root ) do |path|
-        contents = @porter.get( path )
+    def fetch(app, container=Artifact)
+      app.paths.each do |file|
+        stanzas = Parser.parse( @porter.get( file ))
 
-        Parser.parse( contents ).each do |stanza|
-          app.configure path, Migration::Artifact.new( stanza )
+        if Valid.array? stanzas
+          stanzas.each do |stanza|
+            app.configure file, container.new( stanza )
+          end
+
+        # TODO: need a test for this first...
+        # else
+        #   app.configure file, stanzas.to_s
         end
       end
       apps[ app.name ] = app
