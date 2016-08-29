@@ -10,8 +10,19 @@ module Migration
 
     class << self
 
+      # Those that take blocks are helpers for the others...
+      def string?(string, &block)
+        String === string  && ( block_given? ? yield( string ) : true )
+      end
+
+      def array?(array, &block)
+        Array === array && ( block_given? ? yield( array ) : true ) # Hrm... how to dry out?
+      end
+
       def file?(file)
-        File.exists? file and File.readable? file
+        string? file do
+          File.exists? file and File.readable? file
+        end
       end
 
       def absolute_path?(path)
@@ -19,7 +30,9 @@ module Migration
       end
 
       def relative_path?(path)
-        path.split( '/' ).size > 1
+        string? path do
+          path.split( '/' ).size > 1
+        end
       end
 
       def ini?(ini)
@@ -39,12 +52,10 @@ module Migration
       end
 
       def path_array?(paths)
-        return false unless paths.is_a? Array
-        paths == paths.select {|path| Valid.relative_path? path }
+        array? paths do
+          paths == paths.select {|path| Valid.relative_path? path }
+        end
       end
-
     end
   end
-
-
 end
