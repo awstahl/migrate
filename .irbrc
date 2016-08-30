@@ -1,4 +1,4 @@
-require './lib/splmig.rb'
+require './lib/migrate.rb'
 
 Conf = { connection: {
   host: 'tewuvadspl06.tew.sephoraus.com',
