@@ -69,10 +69,7 @@ module Migration
     end
     private :parse_file
 
-    def configure(file, container=Artifact)
-      refresh_paths
-      return false unless @paths.include? file
-
+    def populate(file, container)
       key = file[ /[^\/]+$/ ]
       pointer = retrieve( file.gsub( key, '' ))
       pointer[ key ] = [] unless Array === pointer
@@ -81,6 +78,19 @@ module Migration
       if content
         content.each do |stanza|
           pointer[ key ] << container.new( stanza )
+        end
+      end
+    end
+    private :populate
+
+    def configure(file=nil, container=Artifact)
+      refresh_paths
+
+      if file
+        populate file, container if @paths.include? file
+      else
+        @paths.each do |path|
+          populate path, container
         end
       end
     end
@@ -128,7 +138,8 @@ module Migration
     # end
 
     def fetch(app)
-
+      app.configure
+      @apps[ app.name ] = app
     end
 
     # Opens the connection to the remote server using

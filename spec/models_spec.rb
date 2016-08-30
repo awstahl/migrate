@@ -58,7 +58,7 @@ describe 'Migration Application' do
 
   def mocks
     @porter = double
-    allow( @porter ).to receive( :get ).with( any_args ).and_return "[artifact name]\nkey = val\n\n"
+    allow( @porter ).to receive( :get ).with( any_args ).and_return "[artifact name]\nkey = val\n\n[art Two]\nskel = lock\n\n"
     allow( @porter ).to receive( :list ).with( any_args ).and_return @paths
 
     @container = double
@@ -110,8 +110,19 @@ describe 'Migration Application' do
   end
 
   it 'can be configured' do
+    @app.configure
+    expect( @app.conf[ 'local' ][ 'inputs.conf' ].first.name ).to eq( 'artifact name' )
+    expect( @app.conf[ 'local' ][ 'inputs.conf' ].last.name ).to eq( 'art Two' )
+  end
+
+  it 'can configure a file' do
     @app.configure 'local/inputs.conf'
     expect( @app.conf[ 'local' ][ 'inputs.conf' ].first.name ).to eq( 'artifact name' )
+  end
+
+  it 'skips non-app files' do
+    @app.configure 'this/is/not/a/file.conf'
+    expect( @app.conf.key? 'this' ).to be_falsey
   end
 
   it 'requires a porter to configure' do
@@ -302,11 +313,11 @@ describe 'Migration Server Itself' do
     expect( @srv.apps ).to eq({})
   end
 
-  it 'can fetch app configuration' do
-    @srv.fetch @app
-    expect( @srv.apps[ @app.name ]).to eq( @app )
-  end
-
+  # it 'can fetch app configuration' do
+  #   @srv.fetch @app
+  #   expect( @srv.apps[ @app.name ]).to eq( @app )
+  # end
+  #
   # it 'can fetch an application with an injected container' do
   #   @srv.fetch @app, @container
   #   expect( @srv.apps[ @app.name ]).to eq( @app )
