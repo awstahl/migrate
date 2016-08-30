@@ -11,7 +11,7 @@ describe 'Migration Options' do
       @opts = OptionParser.new do |opts|
         opts.banner = 'Usage: opttesting -p STRING'
         opts.on '-p', '--print STRING', 'the string to print back' do |arg|
-          @runtime[:string] = "the string to print back: #{ arg }"
+          @runtime[ :string ] = "the string to print back: #{ arg }"
         end
       end
 

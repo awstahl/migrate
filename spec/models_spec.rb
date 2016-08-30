@@ -272,7 +272,7 @@ describe 'Migration Server Itself' do
   def loop_paths
     @paths.each do |path, text|
       allow( @remote ).to receive( :exec! ).with( "cat #{ path }" ).and_return text
-      allow( @app ).to receive( :configure ).with( path, anything()).and_return text
+      allow( @app ).to receive( :configure ).with(path, any_args ).and_return text
 
       text.each do |item|
         allow( @container ).to receive( :new ).with( item ).and_return item
