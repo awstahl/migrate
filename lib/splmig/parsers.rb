@@ -110,7 +110,7 @@ module Migration
     class << self
 
       def parse(file)
-        Migration::Parser.parse File.read( file ) if valid? file
+        Parser.parse File.read( file ) if valid? file
       end
 
       def valid?(file)

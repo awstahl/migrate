@@ -116,7 +116,17 @@ end
 
 describe 'Migration File Parsing' do
 
-  # TODO: Need to finish string-based parsing first...
+  it 'parses conf file contents' do
+    expect( Migration::FileParser.parse "#{ File.dirname( __FILE__ )}/data/sample.conf" ).to include( "[Test]\naction.script = 1" )
+  end
+
+  it 'parses yaml file contents' do
+    expect( Migration::FileParser.parse( "#{ File.dirname( __FILE__ )}/data/sample.yml" ).keys ).to include( :ssh ).and include( :migration )
+  end
+
+  it 'rejects non-existant files' do
+    expect( Migration::FileParser.parse '/path/to/nowhere' ).to be_falsey
+  end
 
 end
 
