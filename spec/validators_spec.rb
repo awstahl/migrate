@@ -53,6 +53,7 @@ describe 'Migration Validator' do
     expect( Migration::Valid.array? @pi ).to be_falsey
   end
 
+
   # File tests
 
   it 'validates a file' do

@@ -10,13 +10,18 @@ module Migration
 
     class << self
 
+      # TODO: DRY these out with method_missing...
       # Those that take blocks are helpers for the others...
       def string?(string, &block)
         String === string  && string !~ /\0/ && ( block_given? ? yield( string ) : true )
       end
 
       def array?(array, &block)
-        Array === array && ( block_given? ? yield( array ) : true ) # Hrm... how to dry out?
+        Array === array && ( block_given? ? yield( array ) : true )
+      end
+
+      def hash?(hash, &block)
+        Hash === hash && ( block_given? ? yield( hash ) : true )
       end
 
       def file?(file)
