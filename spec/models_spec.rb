@@ -58,8 +58,12 @@ describe 'Migration Application' do
 
   def mocks
     @porter = double
-    allow( @porter ).to receive( :get ).with( any_args ).and_return "[artifact name]\nkey = val\n\n[art Two]\nskel = lock\n\n"
+    allow( @porter ).to receive( :get ).with( any_args ).and_return "[artifact name]\nkey = val\n\n[art Two]\nskel = lock\n"
     allow( @porter ).to receive( :list ).with( any_args ).and_return @paths
+
+    @portwo = double
+    allow( @portwo ).to receive( :get ).with( any_args ).and_return "[artifact name]\nkey = val\n"
+    allow( @portwo ).to receive( :list ).with( any_args ).and_return @paths
 
     @container = double
     allow( @container ).to receive( :new ).with( any_args ).and_return @container
@@ -116,6 +120,12 @@ describe 'Migration Application' do
   end
 
   it 'can configure a file' do
+    @app.configure 'local/inputs.conf'
+    expect( @app.conf[ 'local' ][ 'inputs.conf' ].first.name ).to eq( 'artifact name' )
+  end
+
+  it 'configures single-stanza confs' do
+    @app.porter = @portwo
     @app.configure 'local/inputs.conf'
     expect( @app.conf[ 'local' ][ 'inputs.conf' ].first.name ).to eq( 'artifact name' )
   end

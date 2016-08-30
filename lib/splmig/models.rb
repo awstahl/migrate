@@ -21,7 +21,7 @@ module Migration
 
     def parse(parser=Parser)
       @data = parser.parse @source
-      @name = @data.delete @data.keys.find {|key| key =~ /name/ }
+      @name = @data.delete @data.keys.find {|key| key =~ /name/ } if Hash === @data
     end
   end
 
@@ -75,10 +75,11 @@ module Migration
       pointer[ key ] = [] unless Array === pointer
 
       content = Parser.parse( fetch_file file )
-      if content
-        content.each do |stanza|
-          pointer[ key ] << container.new( stanza )
-        end
+
+      # TODO: Write a test for this if it works... it does.
+      content = [ content ] unless Valid.array? content
+      content.each do |stanza|
+        pointer[ key ] << container.new( stanza )
       end
     end
     private :populate
@@ -90,6 +91,7 @@ module Migration
         populate file, container if @paths.include? file
       else
         @paths.each do |path|
+          puts "Fetching path #{ path }"
           populate path, container
         end
       end
