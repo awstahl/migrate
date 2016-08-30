@@ -1,5 +1,5 @@
 require 'rspec'
-require "#{ File.dirname __FILE__ }/../lib/splmig/sugar"
+require "#{ File.dirname __FILE__ }/../lib/migrate/sugar"
 
 
 describe 'Some Sugar' do

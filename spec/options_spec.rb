@@ -1,5 +1,5 @@
 require 'rspec'
-require "#{ File.dirname __FILE__ }/../lib/splmig/options"
+require "#{ File.dirname __FILE__ }/../lib/migrate/options"
 
 
 describe 'Migration Options' do
@@ -44,11 +44,11 @@ describe 'Migration Options' do
   end
 
   it 'provides help by default' do
-    expect { Migration::Options.parse %w[notacmd] }.to output("Usage: splmig <CMD>\n").to_stdout
+    expect { Migration::Options.parse %w[notacmd] }.to output("Usage: migrate <CMD>\n").to_stdout
   end
 
   it 'provides help by default pt. 2' do
-    expect { Migration::Options.parse [] }.to output("Usage: splmig <CMD>\n").to_stdout
+    expect { Migration::Options.parse [] }.to output("Usage: migrate <CMD>\n").to_stdout
   end
 
 end

@@ -6,7 +6,7 @@
 # into native ruby data structures
 
 require 'rspec'
-require "#{ File.dirname __FILE__ }/../lib/splmig/parsers"
+require "#{ File.dirname __FILE__ }/../lib/migrate/parsers"
 
 
 # TODO: Bring consistency to the testing

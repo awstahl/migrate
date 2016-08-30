@@ -6,7 +6,7 @@ Tasks that need implementing:
 - fetch & parse a file (artify) - DONE
 - better conf definition - IN PROGRESS
 - general debugging - IN PROGRESS
+- printers class - DONE
+- printers injection - IN PROGRESS
 - manager class
 - options class
-- printers
-

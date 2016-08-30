@@ -1,0 +1,1 @@
+require "#{ File.dirname __FILE__ }/migrate/models.rb"

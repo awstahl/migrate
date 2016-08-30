@@ -1,5 +1,5 @@
 require 'rspec'
-require "#{ File.dirname __FILE__ }/../lib/splmig/models.rb"
+require "#{ File.dirname __FILE__ }/../lib/migrate/models.rb"
 
 
 describe 'Migration Artifact' do
@@ -7,6 +7,9 @@ describe 'Migration Artifact' do
   def mocks
     @parser = double
     allow( @parser ).to receive( :parse ).and_return({ a: 1, b: 2, 'name' => 'mockd' })
+
+    @printer = double
+    allow( @printer ).to receive( :print ).with( any_args ).and_return 'Damn yer pirate, feed the ale.'
   end
 
   before :all do
@@ -39,18 +42,15 @@ describe 'Migration Artifact' do
     expect( @art.name ).to eq( 'mockd' )
   end
 
-  # it 'can print itself formatted' do
-  #   expect( @art.to_s ).to eq( @source )
-  # end
-  #
-  # it 'prints in alpha order by keys' do
-  #   @str.parser = @parser
-  #   @str.parse
-  #   @str[ :cat ] = 'bar'
-  #   @str[ :manx ] = 'zoo'
-  #   @str[ :abc ] = 'foo'
-  #   expect( @str.to_s ).to eq( "[artifact name]\nabc = foo\ncat = bar\nmanx = zoo\nsearch = index=foobar\n\n")
-  # end
+  it 'accepts a printer' do
+    @art.printer = @printer
+    expect( @art.printer ).to eq( @printer )
+  end
+
+  it 'uses the printer to print' do
+    @art.printer = @printer
+    expect( @art.print ).to eq( 'Damn yer pirate, feed the ale.' )
+  end
 
 end
 
@@ -58,16 +58,19 @@ describe 'Migration Application' do
 
   def mocks
     @porter = double
-    allow( @porter ).to receive( :get ).with( any_args ).and_return "[artifact name]\nkey = val\n\n[art Two]\nskel = lock\n"
+    allow( @porter ).to receive( :get ).with( any_args ).and_return @conffile
     allow( @porter ).to receive( :list ).with( any_args ).and_return @paths
 
     @portwo = double
-    allow( @portwo ).to receive( :get ).with( any_args ).and_return "[artifact name]\nkey = val\n"
+    allow( @portwo ).to receive( :get ).with( any_args ).and_return @stanza
     allow( @portwo ).to receive( :list ).with( any_args ).and_return @paths
 
     @container = double
     allow( @container ).to receive( :new ).with( any_args ).and_return @container
     allow( @container ).to receive( :name ).with( any_args ).and_return 'tstCntr'
+
+    @printer = double
+    allow( @printer ).to receive( :print ).with( any_args ).and_return @conffile
   end
 
   before :all do
@@ -79,6 +82,8 @@ describe 'Migration Application' do
     @paths << 'default/data/ui/nav/bar.xml'
     @paths << 'default/data/ui/views/main.xml'
     @paths << 'local/inputs.conf'
+    @stanza = "[artifact name]\nkey = val\n"
+    @conffile = "#{ @stanza }\n[art Two]\nskel = lock\n"
   end
 
   before :each do
@@ -165,6 +170,17 @@ describe 'Migration Application' do
     app = Migration::Application.new root: '/path/to/nowhere', porter: @porter
     expect( app.paths ).to eq( @paths )
   end
+
+  it 'accepts a printer' do
+    @app.printer = @printer
+    expect( @app.printer ).to eq( @printer )
+  end
+
+  it 'uses the printer to print itself' do
+    @app.printer = @printer
+    expect( @app.print ).to eq( @conffile )
+  end
+
 end
 
 describe 'Migration Server Connection' do

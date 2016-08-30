@@ -15,7 +15,7 @@ module Migration
 
     @cmds = {}
     @opts = ::OptionParser.new do |opts|
-      opts.banner = 'Usage: splmig <CMD>'
+      opts.banner = 'Usage: migrate <CMD>'
     end
 
     class << self

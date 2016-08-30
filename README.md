@@ -1,28 +1,41 @@
 # migrate
-A (splunk) config artifact migration tool
+A configuration artifact migration tool
 
-Migrate configuration artifacts from one system to another (say, dev to test). Currently is a collection of objects designed for use with a splunk server.
+Migrate configuration artifacts from one system to another - say, dev to test, or legacy to new.  Currently is a collection of objects designed to retrieve conf data; model said data as ruby objects to allow for programmatic modification; and to print the modeled data as a conf file.
 
-Requires: ruby 2.x, a optparse, yaml, net/ssh gems, a (splunk) server w/ ssh access
+Requires: ruby 2.x, optparse, yaml, and net/ssh gems, a (splunk) server w/ ssh access
 
 Usage
 -----
 
 ###### >irb
 ``` shell
-require './lib/models'
+require './lib/migrate'
 
-# First, create a (SSH-based) connection object
-connection = Migration::Server::Connection.new 'myhost', 'myuser', '/path/to/mykey.pem'
+# First, create a (SSH-based) connection hash
+connection = host: 'myhost', user: 'myuser', keyfile: '/path/to/mykey.pem'
 
-# Pass it to a porter
-porter = Migration::Server::Porter.new connection
+# Create a server object with it
+srv = Migration::Server.new connection: connection
 
-# Use the porter & Parser to fetch file lists
-flist = Migration::Parser.parse porter.list( '/path/to/confs' )
+# Create an application object
+app = Migration::Application.new root: '/path/to/app/conf.d'
 
-# Use the porter & Parser to retrieve file contents
-slist = Migration::Parser.parse porter.get( flist.first )
+# Fetch the app configuration with the server
+srv.fetch app
+> # iterates files under app.root, fetching contents of each
+
+# Explore the contents of the app through its config hash
+app.conf
+> { 'path' => { 'to' => { 'app' => { 'conf.d' => [ #parsed content array ] }}}}
+
+# Paths become hash keys
+app.conf[ 'path' ][ 'to' ][ 'app' ][ 'conf.d' ][ 'auth.conf' ]
+> structured file contents
+
+#Alternately, retrieve contents via the path string
+app.retrieve '/path/to/app/conf.d/auth.conf'
+> structured file contents
 
 ...
 ```

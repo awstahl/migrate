@@ -4,14 +4,16 @@
 #
 #  This is a set of classes that models config data.
 
-require "#{ File.dirname __FILE__ }/sugar"
-require "#{ File.dirname __FILE__ }/parsers"
 require "#{ File.dirname __FILE__ }/options"
+require "#{ File.dirname __FILE__ }/parsers"
+require "#{ File.dirname __FILE__ }/printers"
+require "#{ File.dirname __FILE__ }/sugar"
 
 module Migration
 
   # An Artifact is a 'parsed data' container
   class Artifact
+    attr_accessor :printer
     attr_reader :data, :name, :source
 
     def initialize(source)
@@ -23,12 +25,17 @@ module Migration
       @data = parser.parse @source
       @name = @data.delete @data.keys.find {|key| key =~ /name/ } if Hash === @data
     end
+
+    def print
+      @printer.print self
+    end
+    alias :to_s :print
   end
 
   # An application is an encapsulation of the
   # data within a given structured subdirectory
   class Application
-    attr_accessor :porter
+    attr_accessor :porter, :printer
     attr_reader :conf, :name, :paths, :porter, :root
 
     def initialize(conf)
@@ -105,6 +112,10 @@ module Migration
         pointer = pointer[ key ]
       end
       pointer
+    end
+
+    def print
+
     end
   end
 

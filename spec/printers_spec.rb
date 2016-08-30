@@ -1,5 +1,5 @@
 require 'rspec'
-require "#{ File.dirname __FILE__ }/../lib/splmig/printers.rb"
+require "#{ File.dirname __FILE__ }/../lib/migrate/printers.rb"
 
 
 describe 'Migration ini stanza printing' do
@@ -27,7 +27,7 @@ describe 'Migration conf file printing' do
   end
 
   it 'prints a conf file' do
-    expect( Migration::ConfPrinter.print %w[ stanza block line ]).to eq( "stanza\n\nblock\n\nline" )
+    expect( Migration::ConfPrinter.print [ "stanza\n", "block\n", "line\n" ]).to eq( "stanza\n\nblock\n\nline\n" )
   end
 
   it 'requires an array to print' do

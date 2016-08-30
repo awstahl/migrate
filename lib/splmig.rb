@@ -1,1 +1,0 @@
-require "#{ File.dirname __FILE__ }/splmig/models.rb"

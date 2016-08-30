@@ -22,19 +22,21 @@ module Migration
         end
         out
       end
+
     end
   end
 
 
   class ConfPrinter
+
     class << self
 
       def print(stanzas)
         Valid.array? stanzas do
-          stanzas.join "\n\n"
+          stanzas.join "\n"
         end
       end
+
     end
   end
-
 end
