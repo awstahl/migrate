@@ -60,6 +60,10 @@ describe 'Migration Application' do
     @porter = double
     allow( @porter ).to receive( :get ).with( any_args ).and_return "[artifact name]\nkey = val\n\n"
     allow( @porter ).to receive( :list ).with( any_args ).and_return @paths
+
+    @container = double
+    allow( @container ).to receive( :new ).with( any_args ).and_return @container
+    allow( @container ).to receive( :name ).with( any_args ).and_return 'tstCntr'
   end
 
   before :all do
@@ -121,6 +125,11 @@ describe 'Migration Application' do
     expect( @skel.conf[ 'local' ][ 'inputs.conf' ].first.name ).to eq( 'artifact name' )
   end
 
+  it 'can inject a new container for parsed file data' do
+    @app.configure 'local/inputs.conf', @container
+    expect( @app.conf[ 'local' ][ 'inputs.conf' ].first.name ).to eq( 'tstCntr' )
+  end
+
   it 'can retrieve data by path' do
     expect( @app.retrieve( 'local/inputs.conf')).to eq({})
   end
@@ -132,9 +141,7 @@ describe 'Migration Application' do
   end
 
   it 'can use the porter to list paths' do
-    @conf.delete :paths
-    @conf[ :porter ] = @porter
-    app = Migration::Application.new @conf
+    app = Migration::Application.new root: '/path/to/nowhere', porter: @porter
     expect( app.paths ).to eq( @paths )
   end
 end
@@ -295,11 +302,11 @@ describe 'Migration Server Itself' do
     expect( @srv.apps ).to eq({})
   end
 
-  # it 'can fetch app configuration' do
-  #   @srv.fetch @app
-  #   expect( @srv.apps[ @app.name ]).to eq( @app )
-  # end
-  #
+  it 'can fetch app configuration' do
+    @srv.fetch @app
+    expect( @srv.apps[ @app.name ]).to eq( @app )
+  end
+
   # it 'can fetch an application with an injected container' do
   #   @srv.fetch @app, @container
   #   expect( @srv.apps[ @app.name ]).to eq( @app )

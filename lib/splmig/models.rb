@@ -69,13 +69,11 @@ module Migration
     end
     private :parse_file
 
-    def configure(file, porter=nil, container=Artifact)
+    def configure(file, container=Artifact)
       refresh_paths
       return false unless @paths.include? file
 
-      @porter = porter || @porter
       key = file[ /[^\/]+$/ ]
-
       pointer = retrieve( file.gsub( key, '' ))
       pointer[ key ] = [] unless Array === pointer
 
