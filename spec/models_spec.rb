@@ -59,6 +59,7 @@ describe 'Migration Application' do
   def mocks
     @porter = double
     allow( @porter ).to receive( :get ).with( any_args ).and_return "[artifact name]\nkey = val\n\n"
+    allow( @porter ).to receive( :list ).with( any_args ).and_return @paths
   end
 
   before :all do
@@ -70,15 +71,13 @@ describe 'Migration Application' do
     @paths << 'default/data/ui/nav/bar.xml'
     @paths << 'default/data/ui/views/main.xml'
     @paths << 'local/inputs.conf'
-    @conf = {
-        paths: @paths,
-        root: '/path/to/apps/rspec_test_app'
-    }
   end
 
   before :each do
     mocks
+    @conf = { root: '/path/to/apps/rspec_test_app', porter: @porter }
     @app = Migration::Application.new @conf
+    @skel = Migration::Application.new root: '/path/to/somewhere/else'
   end
 
   it 'exists' do
@@ -107,23 +106,36 @@ describe 'Migration Application' do
   end
 
   it 'can be configured' do
-    @app.configure 'local/inputs.conf', @porter
+    @app.configure 'local/inputs.conf'
     expect( @app.conf[ 'local' ][ 'inputs.conf' ].first.name ).to eq( 'artifact name' )
   end
 
   it 'requires a porter to configure' do
-    @app.configure 'local/inputs.conf'
-    expect( @app.conf[ 'local' ][ 'inputs.conf' ].first ).to eq( nil )
+    @skel.configure 'local/inputs.conf'
+    expect( @skel.conf ).to eq({})
   end
 
   it 'can set a porter' do
-    @app.porter = @porter
-    @app.configure 'local/inputs.conf'
-    expect( @app.conf[ 'local' ][ 'inputs.conf' ].first.name ).to eq( 'artifact name' )
+    @skel.porter = @porter
+    @skel.configure 'local/inputs.conf'
+    expect( @skel.conf[ 'local' ][ 'inputs.conf' ].first.name ).to eq( 'artifact name' )
   end
 
   it 'can retrieve data by path' do
     expect( @app.retrieve( 'local/inputs.conf')).to eq({})
+  end
+
+  it 'can retrieve configured data by path' do
+    @app.porter = @porter
+    @app.configure 'local/inputs.conf'
+    expect( @app.retrieve( 'local/inputs.conf').first.name ).to eq( 'artifact name' )
+  end
+
+  it 'can use the porter to list paths' do
+    @conf.delete :paths
+    @conf[ :porter ] = @porter
+    app = Migration::Application.new @conf
+    expect( app.paths ).to eq( @paths )
   end
 end
 

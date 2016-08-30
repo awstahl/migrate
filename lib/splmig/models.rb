@@ -36,7 +36,7 @@ module Migration
       @root = conf[ :root ]
       @name = Parser.parse( conf[ :root ]).last
       @porter = conf[ :porter ]
-      @paths = conf[ :paths ] || ( @porter ? @porter.list( @root ) : [] ) # TODO: test this
+      refresh_paths
       parse @paths
     end
 
@@ -47,6 +47,12 @@ module Migration
       end
     end
     private :parse
+
+    def refresh_paths
+      @paths = ( @porter ? @porter.list( @root ) : [] )
+      parse @paths
+    end
+    private :refresh_paths
 
     def add_file(file)
       ( parse_file(file ) && @paths << file ) unless @paths.include? file
@@ -64,7 +70,9 @@ module Migration
     private :parse_file
 
     def configure(file, porter=nil, container=Artifact)
-      add_file file
+      refresh_paths
+      return false unless @paths.include? file
+
       @porter = porter || @porter
       key = file[ /[^\/]+$/ ]
 
@@ -108,17 +116,21 @@ module Migration
 
     # TODO: Refactor this into the Application class,
     # which only requires a type#get(it) interface
-     def fetch(app, container=Artifact)
-      app.paths.each do |file|
-        stanzas = Parser.parse( @porter.get( file ))
+    #  def fetch(app, container=Artifact)
+    #   app.paths.each do |file|
+    #     stanzas = Parser.parse( @porter.get( file ))
+    #
+    #     if Valid.array? stanzas
+    #       stanzas.each do |stanza|
+    #         app.configure file, container.new( stanza )
+    #       end
+    #     end
+    #   end
+    #   apps[ app.name ] = app
+    # end
 
-        if Valid.array? stanzas
-          stanzas.each do |stanza|
-            app.configure file, container.new( stanza )
-          end
-        end
-      end
-      apps[ app.name ] = app
+    def fetch(app)
+
     end
 
     # Opens the connection to the remote server using
