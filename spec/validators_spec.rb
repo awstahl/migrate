@@ -34,6 +34,10 @@ describe 'Migration Validator' do
     expect( Migration::Valid.string? @pi ).to be_falsey
   end
 
+  it 'rejects null characters' do
+    expect( Migration::Valid.string? "\0" ).to be_falsey
+  end
+
 
   # Array tests
 

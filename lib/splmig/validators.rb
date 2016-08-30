@@ -12,7 +12,7 @@ module Migration
 
       # Those that take blocks are helpers for the others...
       def string?(string, &block)
-        String === string  && ( block_given? ? yield( string ) : true )
+        String === string  && string !~ /\0/ && ( block_given? ? yield( string ) : true )
       end
 
       def array?(array, &block)
