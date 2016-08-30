@@ -21,49 +21,62 @@ module Migration
 
     def parse(parser=Parser)
       @data = parser.parse @source
-      @name = @data.delete 'name'
+      @name = @data.delete @data.keys.find {|key| key =~ /name/ }
     end
   end
 
   # An application is an encapsulation of the
   # data within a given structured subdirectory
   class Application
-    attr_reader :conf, :name, :paths, :root
+    attr_accessor :porter
+    attr_reader :conf, :name, :paths, :porter, :root
 
     def initialize(conf)
       raise MissingPathRoot unless conf.key? :root
       @root = conf[ :root ]
       @name = Parser.parse( conf[ :root ]).last
-      @paths = conf[ :paths ] || []
+      @porter = conf[ :porter ]
+      @paths = conf[ :paths ] || ( @porter ? @porter.list( @root ) : [] ) # TODO: test this
       parse @paths
     end
 
     def parse(paths)
       @conf = {}
       paths.each do |path|
-        parse_path path
+        @conf.deep_merge parse_file( path )
       end
     end
     private :parse
 
-    def parse_path(path)
-      @conf.deep_merge PathHashParser.parse( path )
-    end
-    private :parse_path
-
     def add_file(file)
-      ( parse_path( file ) && @paths << file ) unless @paths.include? file
+      ( parse_file(file ) && @paths << file ) unless @paths.include? file
     end
     private :add_file
 
-    def configure(file, content)
-      add_file file
-      key = file[ /[^\/]+$/ ]
-      path = file.gsub key, ''
+    def fetch_file(file)
+      @porter.get file if @porter
+    end
+    private :fetch_file
 
-      pointer = retrieve path
+    def parse_file(path)
+      PathHashParser.parse( path )
+    end
+    private :parse_file
+
+    def configure(file, porter=nil, container=Artifact)
+      add_file file
+      @porter = porter || @porter
+      key = file[ /[^\/]+$/ ]
+
+      pointer = retrieve( file.gsub( key, '' ))
       pointer[ key ] = [] unless Array === pointer
-      pointer[ key ] << content
+
+      content = Parser.parse( fetch_file file )
+      if content
+        content.each do |stanza|
+          pointer[ key ] << container.new( stanza )
+        end
+      end
     end
 
     def retrieve(path)
@@ -75,7 +88,6 @@ module Migration
       end
       pointer
     end
-
   end
 
   # A Server is a remote host serving an application.

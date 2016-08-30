@@ -6,7 +6,7 @@ describe 'Migration Artifact' do
 
   def mocks
     @parser = double
-    allow( @parser ).to receive( :parse ).and_return({ a: 1, b: 2, name: 'mockd' })
+    allow( @parser ).to receive( :parse ).and_return({ a: 1, b: 2, 'name' => 'mockd' })
   end
 
   before :all do
@@ -56,6 +56,11 @@ end
 
 describe 'Migration Application' do
 
+  def mocks
+    @porter = double
+    allow( @porter ).to receive( :get ).with( any_args ).and_return "[artifact name]\nkey = val\n\n"
+  end
+
   before :all do
     @paths = []
     @paths << 'bin/deploy.rb'
@@ -72,6 +77,7 @@ describe 'Migration Application' do
   end
 
   before :each do
+    mocks
     @app = Migration::Application.new @conf
   end
 
@@ -101,28 +107,19 @@ describe 'Migration Application' do
   end
 
   it 'can be configured' do
-    @app.configure 'local/inputs.conf', 'some file contents'
-    expect( @app.conf[ 'local' ][ 'inputs.conf' ]).to include( 'some file contents')
+    @app.configure 'local/inputs.conf', @porter
+    expect( @app.conf[ 'local' ][ 'inputs.conf' ].first.name ).to eq( 'artifact name' )
   end
 
-  it 'really can be configured' do
-    @app.configure 'default/data/models/model.xml', "<xml>\n<head>some xml data</head>\n</xml>"
-    expect( @app.conf[ 'default' ][ 'data' ][ 'models' ][ 'model.xml' ]).to include( "<xml>\n<head>some xml data</head>\n</xml>" )
+  it 'requires a porter to configure' do
+    @app.configure 'local/inputs.conf'
+    expect( @app.conf[ 'local' ][ 'inputs.conf' ].first ).to eq( nil )
   end
 
-  it 'can be configured with arbitrary content' do
-    @app.configure 'default/data/models/model.xml', 3.14159
-    expect( @app.conf[ 'default' ][ 'data' ][ 'models' ][ 'model.xml' ]).to include( 3.14159 )
-  end
-
-  it 'adds new paths to the paths array' do
-    @app.configure 'some/new/file.conf', 'Where is the proud ship?'
-    expect( @app.paths ).to include( 'some/new/file.conf' )
-  end
-
-  it 'adds new content to a new file' do
-    @app.configure 'some/new/file.conf', 'Where is the proud ship?'
-    expect( @app.conf[ 'some' ][ 'new' ][ 'file.conf' ]).to include( 'Where is the proud ship?' )
+  it 'can set a porter' do
+    @app.porter = @porter
+    @app.configure 'local/inputs.conf'
+    expect( @app.conf[ 'local' ][ 'inputs.conf' ].first.name ).to eq( 'artifact name' )
   end
 
   it 'can retrieve data by path' do
@@ -286,20 +283,20 @@ describe 'Migration Server Itself' do
     expect( @srv.apps ).to eq({})
   end
 
-  it 'can fetch app configuration' do
-    @srv.fetch @app
-    expect( @srv.apps[ @app.name ]).to eq( @app )
-  end
-
-  it 'can fetch an application with an injected container' do
-    @srv.fetch @app, @container
-    expect( @srv.apps[ @app.name ]).to eq( @app )
-  end
-
-  it 'fetch will populate the app config' do
-    @srv.fetch @app, @container
-    @paths.each do |path, textArr|
-      expect( @srv[ @app.name ])
-    end
-  end
+  # it 'can fetch app configuration' do
+  #   @srv.fetch @app
+  #   expect( @srv.apps[ @app.name ]).to eq( @app )
+  # end
+  #
+  # it 'can fetch an application with an injected container' do
+  #   @srv.fetch @app, @container
+  #   expect( @srv.apps[ @app.name ]).to eq( @app )
+  # end
+  #
+  # it 'fetch will populate the app config' do
+  #   @srv.fetch @app, @container
+  #   @paths.each do |path, textArr|
+  #     expect( @srv[ @app.name ])
+  #   end
+  # end
 end
