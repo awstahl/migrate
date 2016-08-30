@@ -3,7 +3,7 @@ A configuration artifact migration tool
 
 Migrate configuration artifacts from one system to another - say, dev to test, or legacy to new.  Currently is a collection of objects designed to retrieve conf data; model said data as ruby objects to allow for programmatic modification; and to print the modeled data as a conf file.
 
-Requires: ruby 2.x, optparse, yaml, and net/ssh gems, a (splunk) server w/ ssh access
+Requires: ruby 2.x, optparse, yaml, and net/ssh gems, a server w/ ssh access
 
 Usage
 -----
@@ -27,7 +27,7 @@ srv.fetch app
 
 # Explore the contents of the app through its config hash
 app.conf
-> { 'path' => { 'to' => { 'app' => { 'conf.d' => [ #parsed content array ] }}}}
+> { 'path' => { 'to' => { 'app' => { 'conf.d' => { 'auth.conf' => [ #parsed content array ], 'web.conf' => [] }}}}
 
 # Paths become hash keys
 app.conf[ 'path' ][ 'to' ][ 'app' ][ 'conf.d' ][ 'auth.conf' ]
