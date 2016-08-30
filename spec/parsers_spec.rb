@@ -9,6 +9,9 @@ require 'rspec'
 require "#{ File.dirname __FILE__ }/../lib/splmig/parsers"
 
 
+# TODO: Bring consistency to the testing
+
+
 describe 'Migration Parsing' do
 
   before :all do
@@ -121,10 +124,10 @@ describe 'Migration File Parsing' do
   end
 
   it 'parses yaml file contents' do
-    expect( Migration::FileParser.parse( "#{ File.dirname( __FILE__ )}/data/sample.yml" ).keys ).to include( :ssh ).and include( :migration )
+    expect( Migration::FileParser.parse( "#{ File.dirname( __FILE__ )}/data/sample.yml" ).keys ).to include( 'ssh' ).and include( 'migration' )
   end
 
-  it 'rejects non-existant files' do
+  it 'performs file validation' do
     expect( Migration::FileParser.parse '/path/to/nowhere' ).to be_falsey
   end
 
@@ -165,10 +168,6 @@ describe 'Migration Path Parsing' do
     expect( Migration::PathParser.valid? 'this is not a path' ).to be_falsey
   end
 
-  it 'returns an empty array for invalid paths' do
-    expect( Migration::PathParser.parse 'bin/' ).to eq([])
-  end
-
 end
 
 describe 'Migration Path Hash Parsing' do
@@ -181,8 +180,16 @@ describe 'Migration Path Hash Parsing' do
     expect( Migration::PathHashParser.parse @path ).to eq({ 'path' => { 'to' => { 'nowhere' => {} }}})
   end
 
-  it 'returns an empty hash for invalid paths' do
-    expect( Migration::PathHashParser.parse 'bin/' ).to eq({})
+  it 'handlles single element paths' do
+    expect( Migration::PathHashParser.parse 'bin/' ).to eq( 'bin' => {})
+  end
+
+  it 'cannot parse a plain string' do
+    expect( Migration::PathHashParser.parse 'not a path' ).to eq({})
+  end
+
+  it 'can only parse a path' do
+    expect( Migration::PathHashParser.parse 3.14 ).to eq({})
   end
 
 end
