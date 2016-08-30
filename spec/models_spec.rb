@@ -262,9 +262,11 @@ describe 'Migration Server Itself' do
 
   def app
     @app = double
+    allow( @app ).to receive( :configure ).with( no_args ).and_return true
     allow( @app ).to receive( :name ).and_return 'mockApp'
-    allow( @app ).to receive( :root ).and_return '/path/to/app'
     allow( @app ).to receive( :paths ).and_return @paths.keys
+    allow( @app ).to receive( :porter= ).and_return true
+    allow( @app ).to receive( :root ).and_return '/path/to/app'
   end
 
   def loop_paths
@@ -313,20 +315,9 @@ describe 'Migration Server Itself' do
     expect( @srv.apps ).to eq({})
   end
 
-  # it 'can fetch app configuration' do
-  #   @srv.fetch @app
-  #   expect( @srv.apps[ @app.name ]).to eq( @app )
-  # end
-  #
-  # it 'can fetch an application with an injected container' do
-  #   @srv.fetch @app, @container
-  #   expect( @srv.apps[ @app.name ]).to eq( @app )
-  # end
-  #
-  # it 'fetch will populate the app config' do
-  #   @srv.fetch @app, @container
-  #   @paths.each do |path, textArr|
-  #     expect( @srv[ @app.name ])
-  #   end
-  # end
+  it 'can fetch app configuration' do
+    @srv.fetch @app
+    expect( @srv.apps[ @app.name ]).to eq( @app )
+  end
+
 end

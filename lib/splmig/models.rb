@@ -122,22 +122,8 @@ module Migration
       @porter = Porter.new @conn
     end
 
-    # TODO: Refactor this into the Application class,
-    # which only requires a type#get(it) interface
-    #  def fetch(app, container=Artifact)
-    #   app.paths.each do |file|
-    #     stanzas = Parser.parse( @porter.get( file ))
-    #
-    #     if Valid.array? stanzas
-    #       stanzas.each do |stanza|
-    #         app.configure file, container.new( stanza )
-    #       end
-    #     end
-    #   end
-    #   apps[ app.name ] = app
-    # end
-
     def fetch(app)
+      app.porter = @porter
       app.configure
       @apps[ app.name ] = app
     end
