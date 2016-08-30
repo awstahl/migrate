@@ -93,8 +93,8 @@ describe 'Migration Validator' do
     expect( Migration::Valid.relative_path? 'bin/foo' ).to be_truthy
   end
 
-  it 'must be a relative file path' do
-    expect( Migration::Valid.relative_path? 'foobar/' ).to be_falsey
+  it 'can be a relative path' do
+    expect( Migration::Valid.relative_path? 'foobar/' ).to be_truthy
   end
 
   it 'rejects non-relative nil values' do
@@ -193,7 +193,7 @@ describe 'Migration Validator' do
   end
 
   it 'detects an invalid path array' do
-    expect( Migration::Valid.path_array? %w[ bin/script bin/ ]).to be_falsey
+    expect( Migration::Valid.path_array? %w[ bin/script bin/ 123 ]).to be_falsey
   end
 
   it 'detects an invalid array' do

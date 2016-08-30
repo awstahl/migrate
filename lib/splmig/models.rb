@@ -57,16 +57,23 @@ module Migration
     private :add_file
 
     def configure(file, content)
-      keys = Parser.parse file
       add_file file
+      key = file[ /[^\/]+$/ ]
+      path = file.gsub key, ''
+
+      pointer = retrieve path
+      pointer[ key ] = [] unless Array === pointer
+      pointer[ key ] << content
+    end
+
+    def retrieve(path)
+      keys = Parser.parse path
       pointer = @conf
 
       keys.each do |key|
-        pointer = pointer[ key ] unless keys.last == key
+        pointer = pointer[ key ]
       end
-
-      pointer[ keys.last ] = [] unless Array === pointer
-      pointer[ keys.last ] << content
+      pointer
     end
 
   end
@@ -87,7 +94,9 @@ module Migration
       @porter = Porter.new @conn
     end
 
-    def fetch(app, container=Artifact)
+    # TODO: Refactor this into the Application class,
+    # which only requires a type#get(it) interface
+     def fetch(app, container=Artifact)
       app.paths.each do |file|
         stanzas = Parser.parse( @porter.get( file ))
 
@@ -95,10 +104,6 @@ module Migration
           stanzas.each do |stanza|
             app.configure file, container.new( stanza )
           end
-
-        # TODO: need a test for this first...
-        # else
-        #   app.configure file, stanzas.to_s
         end
       end
       apps[ app.name ] = app

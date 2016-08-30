@@ -125,6 +125,9 @@ describe 'Migration Application' do
     expect( @app.conf[ 'some' ][ 'new' ][ 'file.conf' ]).to include( 'Where is the proud ship?' )
   end
 
+  it 'can retrieve data by path' do
+    expect( @app.retrieve( 'local/inputs.conf')).to eq({})
+  end
 end
 
 describe 'Migration Server Connection' do
@@ -294,7 +297,9 @@ describe 'Migration Server Itself' do
   end
 
   it 'fetch will populate the app config' do
-    # TODO
+    @srv.fetch @app, @container
+    @paths.each do |path, textArr|
+      expect( @srv[ @app.name ])
+    end
   end
-
 end

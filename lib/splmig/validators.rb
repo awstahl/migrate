@@ -31,7 +31,7 @@ module Migration
 
       def relative_path?(path)
         string? path do
-          path.split( '/' ).size > 1
+          path =~ /\// && path.split( '/' ).size > 0
         end
       end
 
