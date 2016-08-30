@@ -21,7 +21,7 @@ module Migration
 
       def file?(file)
         string? file do
-          File.exists? file and File.readable? file
+          File.exists? file and File.readable? file and not File.directory? file
         end
       end
 

@@ -55,8 +55,12 @@ describe 'Migration Validator' do
     expect( Migration::Valid.file? __FILE__ ).to be_truthy
   end
 
-  it 'rejects a non-existent file' do
+  it 'rejects a non-existant file' do
     expect( Migration::Valid.file? '/path/to/nowhere' ).to be_falsey
+  end
+
+  it 'rejects an existant path' do
+    expect( Migration::Valid.file? File.dirname( __FILE__ ) ).to be_falsey
   end
 
   it 'rejects non-path nil values' do
