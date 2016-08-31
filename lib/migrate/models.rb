@@ -123,7 +123,7 @@ module Migration
       else
         out = {}
         @paths.each do |path|
-          out[ path ] = @printer.print file, retrieve( path )
+          out[ path ] = @printer.print path, retrieve( path )
         end
         out
       end
