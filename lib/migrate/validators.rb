@@ -40,6 +40,10 @@ module Migration
         end
       end
 
+      def path?(path)
+        absolute_path?( path ) || relative_path?( path )
+      end
+
       def ini?(ini)
         ini =~ /^\[.+\]\n.+=.+/m and not conf? ini
       end

@@ -115,6 +115,17 @@ describe 'Migration Validator' do
   end
 
 
+  # Generic Path tests
+
+  it 'validates an arbitrary relative path' do
+    expect( Migration::Valid.path? 'bin/foo' ).to be_truthy
+  end
+
+  it 'validates an arbitrary absolute path' do
+    expect( Migration::Valid.path? '/bin/foo' ).to be_truthy
+  end
+
+
   # Ini tests
 
   it 'validates an ini string' do
