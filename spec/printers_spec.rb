@@ -2,6 +2,45 @@ require 'rspec'
 require "#{ File.dirname __FILE__ }/../lib/migrate/printers.rb"
 
 
+describe 'Migration Printing' do
+
+  before :all do
+    class Migration::FakePrinter < Migration::Printer
+      class << self
+        def print(content)
+          content
+        end
+
+        def valid?(it)
+          it =~ /\.conf$/
+        end
+      end
+
+    end
+  end
+
+  it 'exists' do
+    expect( Object.const_defined? 'Migration::Printer' ).to be_truthy
+  end
+
+  it 'catches nil values' do
+    expect( Migration::Printer.print nil, nil ).to be_falsey
+  end
+
+  it 'tracks its printers' do
+    expect( Migration::Printer.printers ).to include( Migration::FakePrinter )
+  end
+
+  it 'selects a printer based on file name' do
+    expect( Migration::Printer.print 'foo.conf', %w[ free as in beer ] ).to eq( "free\nas\nin\nbeer" )
+  end
+
+  it 'returns the content if no printer is found' do
+    expect( Migration::Printer.print 'file.bin', "\0\0\0\0\0" ).to eq( "\0\0\0\0\0" )
+  end
+
+end
+
 describe 'Migration ini stanza printing' do
 
   it 'exists' do
@@ -32,6 +71,14 @@ describe 'Migration conf file printing' do
 
   it 'requires an array to print' do
     expect( Migration::ConfPrinter.print 'not an array' ).to be_falsey
+  end
+
+  it 'validates conf file name' do
+    expect( Migration::ConfPrinter.valid? 'file.conf').to be_truthy
+  end
+
+  it 'is a printer' do
+    expect( Migration::ConfPrinter.ancestors[ 1 ]).to eq( Migration::Printer )
   end
 
 end

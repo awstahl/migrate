@@ -228,4 +228,20 @@ describe 'Migration Validator' do
     expect( Migration::Valid.path_array? nil ).to be_falsey
   end
 
+
+  # Conf file name tests
+
+  it 'validates a conf file name' do
+    expect( Migration::Valid.confname? 'file.conf' ).to be_truthy
+  end
+
+  it 'rejects non-conf names' do
+    expect( Migration::Valid.confname? 'file.xml' ).to be_falsey
+    expect( Migration::Valid.confname? 'file.json' ).to be_falsey
+  end
+
+  it 'ignores the path segment' do
+    expect( Migration::Valid.confname? '/path/to/file.conf' ).to be_truthy
+  end
+
 end

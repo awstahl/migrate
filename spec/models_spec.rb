@@ -1,3 +1,10 @@
+#
+#  File: models.rb
+#  Author: alex@testcore.net
+#
+#  Tests for a set of classes that models config data.
+
+
 require 'rspec'
 require "#{ File.dirname __FILE__ }/../lib/migrate/models.rb"
 
@@ -50,6 +57,10 @@ describe 'Migration Artifact' do
   it 'uses the printer to print' do
     @art.printer = @printer
     expect( @art.print ).to eq( 'Damn yer pirate, feed the ale.' )
+  end
+
+  it 'defaults to the ini printer' do
+    expect( @art.print ).to eq( "[artifact name]\nkey = val\n" )
   end
 
 end
@@ -171,14 +182,33 @@ describe 'Migration Application' do
     expect( app.paths ).to eq( @paths )
   end
 
-  it 'accepts a printer' do
-    @app.printer = @printer
-    expect( @app.printer ).to eq( @printer )
+  it 'has a default printer' do
+    expect( @app.printer ).to eq( Migration::Printer )
   end
 
-  it 'uses the printer to print itself' do
+  it 'can print all files to a hash' do
+    expect( @app.print.class ).to eq( Hash )
+  end
+
+  it 'prints paths as keys' do
+    expect( @app.print.keys ).to eq( @paths )
+  end
+
+  it 'prints contents as values' do
     @app.printer = @printer
-    expect( @app.print ).to eq( @conffile )
+    @app.print.each do |file, conf|
+      expect( conf ).to eq( @conffile )
+    end
+  end
+
+  it 'can print a single conf file' do
+    @app.printer = @printer
+    expect( @app.print 'local/inputs.conf' ).to eq( @conffile )
+  end
+
+  it 'can accept a printer' do
+    @app.printer = @printer
+    expect( @app.printer ).to eq( @printer )
   end
 
 end

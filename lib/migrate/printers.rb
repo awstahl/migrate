@@ -7,8 +7,33 @@
 
 require "#{ File.dirname __FILE__ }/validators"
 
+
 module Migration
 
+  # Parent class to handle selecting a printer
+  # based on a filename.
+  class Printer
+    @printers = []
+    class << self
+      attr_reader :printers
+
+      def inherited(printer)
+        @printers << printer
+      end
+
+      def print(file, content)
+        return nil unless file && content
+
+        printer = @printers.find do |printer|
+          printer.valid? file
+        end
+        printer ? printer.print( content ) : content
+      end
+    end
+  end
+
+
+  # Is not really a printer...
   class IniPrinter
 
     class << self
@@ -22,12 +47,11 @@ module Migration
         end
         out
       end
-
     end
   end
 
 
-  class ConfPrinter
+  class ConfPrinter < Printer
 
     class << self
 
@@ -37,6 +61,9 @@ module Migration
         end
       end
 
+      def valid?(conf)
+        Valid.confname? conf
+      end
     end
   end
 end

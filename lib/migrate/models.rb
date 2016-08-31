@@ -9,6 +9,7 @@ require "#{ File.dirname __FILE__ }/parsers"
 require "#{ File.dirname __FILE__ }/printers"
 require "#{ File.dirname __FILE__ }/sugar"
 
+
 module Migration
 
   # An Artifact is a 'parsed data' container
@@ -18,6 +19,7 @@ module Migration
 
     def initialize(source)
       @source = source
+      @printer = IniPrinter
       parse
     end
 
@@ -27,7 +29,7 @@ module Migration
     end
 
     def print
-      @printer.print self
+      @printer.print @name, @data
     end
     alias :to_s :print
   end
@@ -43,6 +45,7 @@ module Migration
       @root = conf[ :root ]
       @name = Parser.parse( conf[ :root ]).last
       @porter = conf[ :porter ]
+      @printer = Printer
       refresh_paths
       parse @paths
     end
@@ -67,6 +70,7 @@ module Migration
     private :add_file
 
     def fetch_file(file)
+      puts "Fetching file: #{ file }"
       @porter.get file if @porter
     end
     private :fetch_file
@@ -98,7 +102,6 @@ module Migration
         populate file, container if @paths.include? file
       else
         @paths.each do |path|
-          puts "Fetching path #{ path }"
           populate path, container
         end
       end
@@ -114,8 +117,16 @@ module Migration
       pointer
     end
 
-    def print
-
+    def print(file=nil)
+      if file
+        @printer.print file, retrieve(file) if Valid.path? file
+      else
+        out = {}
+        @paths.each do |path|
+          out[ path ] = @printer.print file, retrieve( path )
+        end
+        out
+      end
     end
   end
 

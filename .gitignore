@@ -7,4 +7,4 @@
 .idea
 tmp/
 *.gem
-
+spec/data/app

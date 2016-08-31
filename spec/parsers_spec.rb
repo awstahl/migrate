@@ -36,9 +36,8 @@ describe 'Migration Parsing' do
     expect( Migration::Parser.parse nil ).to eq( nil )
   end
 
-
   it 'tracks its parsers' do
-    expect( Migration::Parser.parsers.include? Migration::Foo ).to be_truthy
+    expect( Migration::Parser.parsers ).to include( Migration::Foo )
   end
 
   it 'selects a parser' do

@@ -17,7 +17,7 @@ module Migration
       attr_reader :parsers
 
       def inherited(klass)
-        Parser.parsers << klass
+        @parsers << klass
       end
 
       def parse(it)
