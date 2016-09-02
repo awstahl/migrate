@@ -65,12 +65,12 @@ describe 'Migration Stanza Parsing' do
   end
 
   it 'parses an ini string into a hash' do
-    expect( Migration::StanzaParser.parse @ini ).to include( name: 'artifact name', owner: 'admin', search: 'index=foobar' )
+    expect( Migration::StanzaParser.parse @ini ).to include( :name => 'artifact name', 'owner' => 'admin', 'search' => 'index=foobar' )
   end
 
   it 'parses multiline statements' do
     ini = "[artifact name]\nowner = admin\nsearch = index=foobar some | \\nsearch terms here"
-    expect( Migration::StanzaParser.parse ini ).to include( search: 'index=foobar some | \\nsearch terms here' )
+    expect( Migration::StanzaParser.parse ini ).to eq( :name => 'artifact name', 'owner' => 'admin', 'search' => "index=foobar some | \\nsearch terms here" )
   end
 
   it 'performs validation' do

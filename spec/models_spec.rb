@@ -37,7 +37,7 @@ describe 'Migration Artifact' do
   end
 
   it 'uses a default parser to parse' do
-    expect( @art.data[ :key ]).to eq( 'val' )
+    expect( @art.data[ 'key' ]).to eq( 'val' )
   end
 
   it 'parses the name from the source' do

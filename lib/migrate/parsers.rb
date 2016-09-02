@@ -78,7 +78,7 @@ module Migration
 
         if line =~ /\s=\s{1}/
           data = line.split(/\s=\s/).map { |m| m.strip }
-          key = data.first.to_sym
+          key = data.first
           @results[ key ] = data.last
         end
 

@@ -7,6 +7,6 @@ Tasks that need implementing:
 - better conf definition - IN PROGRESS
 - general debugging - IN PROGRESS
 - printers class - DONE
-- printers injection - DEBUGGING
+- printers injection - DONE
 - manager class
 - options class
