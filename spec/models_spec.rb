@@ -76,6 +76,10 @@ describe 'Migration Application' do
     allow( @portwo ).to receive( :get ).with( any_args ).and_return @stanza
     allow( @portwo ).to receive( :list ).with( any_args ).and_return @paths
 
+    @portre = double
+    allow( @portre ).to receive( :get ).with( any_args ).and_return 3.14159
+    allow( @portre ).to receive( :list ).with( any_args ).and_return @paths
+
     @container = double
     allow( @container ).to receive( :new ).with( any_args ).and_return @container
     allow( @container ).to receive( :name ).with( any_args ).and_return 'tstCntr'
@@ -167,6 +171,12 @@ describe 'Migration Application' do
     expect( @app.conf[ 'local' ][ 'inputs.conf' ].first.name ).to eq( 'tstCntr' )
   end
 
+  it 'wraps parsing results in an array' do
+    @skel.porter = @portre
+    @skel.configure 'local/inputs.conf'
+    expect( @skel.conf[ 'local' ][ 'inputs.conf' ].first.data ).to eq( 3.14159 )
+  end
+
   it 'can retrieve data by path' do
     expect( @app.retrieve( 'local/inputs.conf')).to eq({})
   end
@@ -209,6 +219,29 @@ describe 'Migration Application' do
   it 'can accept a printer' do
     @app.printer = @printer
     expect( @app.printer ).to eq( @printer )
+  end
+
+  it 'offers an enumerator' do
+    expect( @app.respond_to? :each ).to be_truthy
+  end
+
+  it 'is enumerable' do
+    expect( @app.is_a? Enumerable ).to be_truthy
+  end
+
+  it 'can enumerate configured confs' do
+    @app.configure
+    @app.each do |conf|
+      expect( Array === conf ).to be_truthy
+    end
+  end
+
+  it 'can filter by regex' do
+    i = 0
+    @app.each /conf$/ do |conf|
+      i += 1
+    end
+    expect( i ).to eq( 2 )
   end
 
 end

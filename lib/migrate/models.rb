@@ -37,6 +37,7 @@ module Migration
   # An application is an encapsulation of the
   # data within a given structured subdirectory
   class Application
+    include Enumerable
     attr_accessor :porter, :printer
     attr_reader :conf, :name, :paths, :porter, :root
 
@@ -86,8 +87,6 @@ module Migration
       pointer[ key ] = [] unless Array === pointer
 
       content = Parser.parse( fetch_file file )
-
-      # TODO: Write a test for this if it works... it does.
       content = [ content ] unless Valid.array? content
       content.each do |stanza|
         pointer[ key ] << container.new( stanza )
@@ -126,6 +125,19 @@ module Migration
           out[ path ] = @printer.print path, retrieve( path )
         end
         out
+      end
+    end
+
+    def each(filter=nil)
+      paths = nil
+      if filter
+        paths = @paths.select {|path| path =~ filter}
+      else
+        paths = @paths
+      end
+
+      paths.each do |path|
+        yield retrieve path
       end
     end
   end
