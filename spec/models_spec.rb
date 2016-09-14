@@ -78,8 +78,19 @@ describe 'Migration Artifact' do
 
   it 'can fix some data' do
     @art.fix! 'key', 'new val'
-    #expect( @art.data[ 'key' ]).to eq( 'new val' )
-    expect( true ).to be_truthy
+    expect( @art.data[ 'key' ]).to eq( 'new val' )
+  end
+
+  it 'only fixes data it has' do
+    expect( @art.fix! 'notakey' ).to be_falsey
+  end
+
+  it 'can fix with a block' do
+    @art.fix! 'key' do |content|
+      content.gsub! /^va/, 'Va'
+      content.gsub /l$/, 'lue'
+    end
+    expect( @art.data[ 'key' ]).to eq( 'Value' )
   end
 
 end

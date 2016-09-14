@@ -37,10 +37,10 @@ module Migration
       Hash === @data and @data.key? key
     end
 
-    def fix!(key, data)
-      # @modder.mod key, data
+    def fix!(key, content=nil, &block)
+      return false unless has? key
+      data[ key ] = ( block_given? ? yield( data[ key ]) : content )
     end
-
   end
 
   # An application is an encapsulation of the
