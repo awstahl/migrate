@@ -20,11 +20,10 @@ module Migration
         @children << klass
       end
 
-      def find(it, action)
-        klass = @children.find do |child|
+      def find(it)
+        @children.find do |child|
           child.valid? it
         end
-        klass ? klass.send( action, it) : it
       end
     end
   end

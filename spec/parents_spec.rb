@@ -39,6 +39,6 @@ describe 'Parents' do
   end
 
   it 'can find a child' do
-    expect( Subpar.find 'it', :actor ).to eq( 'it' )
+    expect( Subpar.find 'it' ).to eq( Junior )
   end
 end
