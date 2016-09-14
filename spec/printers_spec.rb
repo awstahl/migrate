@@ -44,16 +44,16 @@ end
 describe 'Migration ini stanza printing' do
 
   it 'exists' do
-    expect( Object.const_defined? 'Migration::IniPrint' ).to be_truthy
+    expect( Object.const_defined? 'Migration::IniPrinter' ).to be_truthy
   end
 
   it 'prints an ini stanza from a header string and hash' do
-    expect( Migration::IniPrint.it 'test ini stanza', enabled: true, zeta: 'maybe', queue: false ).to \
+    expect( Migration::IniPrinter.print 'test ini stanza', enabled: true, zeta: 'maybe', queue: false ).to \
     eq( "[test ini stanza]\nenabled = true\nqueue = false\nzeta = maybe\n" )
   end
 
   it 'requires a valid hash' do
-    expect( Migration::IniPrint.it 3.14, 'not a hash' ).to eq( "[3.14]\n")
+    expect( Migration::IniPrinter.print 3.14, 'not a hash' ).to eq( "[3.14]\n")
   end
 
 end
@@ -62,23 +62,23 @@ end
 describe 'Migration conf file printing' do
 
   it 'exists' do
-    expect( Object.const_defined? 'Migration::ConfPrint' ).to be_truthy
+    expect( Object.const_defined? 'Migration::ConfPrinter' ).to be_truthy
   end
 
   it 'prints a conf file' do
-    expect( Migration::ConfPrint.print [ "stanza\n", "block\n", "line\n" ]).to eq( "stanza\n\nblock\n\nline\n" )
+    expect( Migration::ConfPrinter.print [ "stanza\n", "block\n", "line\n" ]).to eq( "stanza\n\nblock\n\nline\n" )
   end
 
   it 'requires an array to print' do
-    expect( Migration::ConfPrint.print 'not an array' ).to be_falsey
+    expect( Migration::ConfPrinter.print 'not an array' ).to be_falsey
   end
 
   it 'validates conf file name' do
-    expect( Migration::ConfPrint.valid? 'file.conf').to be_truthy
+    expect( Migration::ConfPrinter.valid? 'file.conf').to be_truthy
   end
 
   it 'is a printer' do
-    expect( Migration::ConfPrint.ancestors[ 1 ]).to eq( Migration::Print )
+    expect( Migration::ConfPrinter.ancestors[ 1 ]).to eq( Migration::Print )
   end
 
 end

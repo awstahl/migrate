@@ -30,11 +30,11 @@ module Migration
 
 
   # Is not really a printer...
-  class IniPrint
+  class IniPrinter
 
     class << self
 
-      def it(header, data)
+      def print(header, data)
         out = "[#{ header }]\n"
         Valid.hash? data do
           data.keys.sort.each do |key|
@@ -47,7 +47,7 @@ module Migration
   end
 
 
-  class ConfPrint < Print
+  class ConfPrinter < Print
 
     class << self
 

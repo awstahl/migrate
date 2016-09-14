@@ -23,8 +23,8 @@ module Migration
       parse
     end
 
-    def parse(parser=Parser)
-      @data = parser.parse @source
+    def parse(parse=Parse)
+      @data = parse.it @source
       @name = @data.delete @data.keys.find {|key| key =~ /name/ } if Hash === @data
     end
 
@@ -53,9 +53,9 @@ module Migration
     def initialize(conf)
       raise MissingPathRoot unless conf.key? :root
       @root = conf[ :root ]
-      @name = Parser.parse( conf[ :root ]).last
+      @name = Parse.it( conf[ :root ]).last
       @porter = conf[ :porter ]
-      @printer = Printer
+      @printer = Print
       refresh_paths
       parse @paths
     end
@@ -95,7 +95,7 @@ module Migration
       pointer = retrieve( file.gsub( key, '' ))
       pointer[ key ] = [] unless Array === pointer
 
-      content = Parser.parse( fetch_file file )
+      content = Parse.it( fetch_file file )
       content = [ content ] unless Valid.array? content
       content.each do |stanza|
         pointer[ key ] << container.new( stanza )
@@ -116,7 +116,7 @@ module Migration
     end
 
     def retrieve(path)
-      keys = Parser.parse path
+      keys = Parse.it path
       pointer = @conf
 
       keys.each do |key|
@@ -127,11 +127,11 @@ module Migration
 
     def print(file=nil)
       if file
-        @printer.print file, retrieve(file) if Valid.path? file
+        @printer.it file, retrieve(file) if Valid.path? file
       else
         out = {}
         @paths.each do |path|
-          out[ path ] = @printer.print path, retrieve( path )
+          out[ path ] = @printer.it path, retrieve(path )
         end
         out
       end
@@ -217,7 +217,7 @@ module Migration
 
       def list(path)
         raise InvalidPath unless valid? path
-        Parser.parse @conn.exec( "find #{ path } -type f -iname \"*\"" )
+        Parse.it @conn.exec( "find #{ path } -type f -iname \"*\"" )
       end
 
       def get(file)
