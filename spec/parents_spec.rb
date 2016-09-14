@@ -6,7 +6,6 @@
 # hook to track its subclasses
 
 
-
 require 'rspec'
 require "#{ File.dirname __FILE__ }/../lib/migrate/parents"
 
@@ -19,6 +18,15 @@ describe 'Parents' do
 
     class Junior < Subpar
       @children = []
+
+      class << self
+
+        def valid?(it)
+          it
+        end
+        alias :actor :valid?
+
+      end
     end
   end
 
@@ -30,4 +38,7 @@ describe 'Parents' do
     expect( Subpar.children ).to include( Junior )
   end
 
+  it 'can find a child' do
+    expect( Subpar.find 'it', :actor ).to eq( 'it' )
+  end
 end

@@ -19,6 +19,13 @@ module Migration
       def inherited(klass)
         @children << klass
       end
+
+      def find(it, action)
+        klass = @children.find do |child|
+          child.valid? it
+        end
+        klass ? klass.send( action, it) : it
+      end
     end
   end
 end
