@@ -37,7 +37,7 @@ describe 'Migration Parsing' do
   end
 
   it 'tracks its parsers' do
-    expect( Migration::Parser.parsers ).to include( Migration::Foo )
+    expect( Migration::Parser.children ).to include( Migration::Foo )
   end
 
   it 'selects a parser' do

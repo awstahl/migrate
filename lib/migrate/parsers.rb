@@ -8,24 +8,23 @@
 # noinspection RubyResolve
 require "#{ File.dirname __FILE__ }/validators"
 
+require "#{ File.dirname __FILE__ }/parents"
+
 module Migration
 
   # Master Parser class to track others...
-  class Parser
-    @parsers = []
-    class << self
-      attr_reader :parsers
+  class Parser < Parent
+    @children = []
 
-      def inherited(klass)
-        @parsers << klass
-      end
+    class << self
+      attr_reader :children
 
       def parse(it)
 
         # Required to prevent calls to #valid? to fail awkwardly
         return nil unless it
 
-        klass = Parser.parsers.find do |parser|
+        klass = Parser.children.find do |parser|
           parser.valid? it
         end
         klass ? klass.parse( it ) : it
