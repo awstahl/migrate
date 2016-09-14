@@ -8,3 +8,4 @@ Conf = { connection: {
 }
 
 Path = '/opt/splunk/etc/system'
+Paths = [ "#{ Path }/local/inputs.conf", "#{ Path }/local/savedsearches.conf" ]
