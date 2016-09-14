@@ -10,12 +10,13 @@ module Migration
 
   class Parent
 
+    # OBS: this is not inherited, yet can be
+    # accessed by subclasses in #inherited
     @children = []
     class << self
       attr_reader :children
 
       def inherited(klass)
-        puts "had a kid! #{ klass }"
         @children << klass
       end
     end

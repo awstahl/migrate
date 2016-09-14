@@ -1,36 +1,33 @@
+#
+#  File: parents_spec.rb
+#  Author: alex@testcore.net
+#
+# Generic parent class for any subclass which needs a
+# hook to track its subclasses
+
+
+
 require 'rspec'
+require "#{ File.dirname __FILE__ }/../lib/migrate/parents"
 
 describe 'Parents' do
 
-  it 'should be a parent' do
+  before :all do
+    class Subpar < Migration::Parent
+      @children = []
+    end
 
-    true.should == false
-  end
-end
-
-
-
-=begin
-class Parser < Migration::Parent
-  # @parsers = @children
-  @children = []
-
-  class << self
-    attr_reader :children
-
-    def parse
-      puts "wat the fuk:"
-      puts"class children member: #{ @children }"
-      puts "children is a: #{ @children.class }"
-      puts "class children accessor: #{ children }"
+    class Junior < Subpar
+      @children = []
     end
   end
+
+  it 'tracks its children' do
+    expect( Migration::Parent.children ).to include( Subpar )
+  end
+
+  it 'inherits parent behavior' do
+    expect( Subpar.children ).to include( Junior )
+  end
+
 end
-
-class Foo < Parser
-
-end
-
-puts "Parser has hook? #{ Parser.respond_to? :inherited}"
-Parser.parse
-=end
