@@ -28,7 +28,7 @@ describe 'Migration Printing' do
   end
 
   it 'tracks its printers' do
-    expect( Migration::Printer.printers ).to include( Migration::FakePrinter )
+    expect( Migration::Printer.children ).to include( Migration::FakePrinter )
   end
 
   it 'selects a printer based on file name' do

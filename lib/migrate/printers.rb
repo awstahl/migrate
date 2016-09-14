@@ -6,25 +6,23 @@
 # to printable strings.
 
 require "#{ File.dirname __FILE__ }/validators"
+require "#{ File.dirname __FILE__ }/parents"
 
 
 module Migration
 
   # Parent class to handle selecting a printer
   # based on a filename.
-  class Printer
-    @printers = []
-    class << self
-      attr_reader :printers
+  class Printer < Parent
 
-      def inherited(printer)
-        @printers << printer
-      end
+    @children = []
+    class << self
+      attr_reader :children
 
       def print(file, content)
         return nil unless file && content
 
-        printer = @printers.find do |printer|
+        printer = @children.find do |printer|
           printer.valid? file
         end
         printer ? printer.print( content ) : content
