@@ -1,3 +1,9 @@
+#
+#  File: options_spec.rb
+#  Author: alex@testcore.net
+#
+#  Tests for Options factory
+
 require 'rspec'
 require "#{ File.dirname __FILE__ }/../lib/migrate/options"
 

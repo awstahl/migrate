@@ -1,3 +1,10 @@
+#
+#  File: models.rb
+#  Author: alex@testcore.net
+#
+#  Tests for some sugar
+
+
 require 'rspec'
 require "#{ File.dirname __FILE__ }/../lib/migrate/sugar"
 

@@ -1,3 +1,10 @@
+#
+#  File: printers_spec.rb
+#  Author: alex@testcore.net
+#
+#  Tests for a set of Printers
+
+
 require 'rspec'
 require "#{ File.dirname __FILE__ }/../lib/migrate/printers.rb"
 
