@@ -1,5 +1,5 @@
 #
-#  File: models.rb
+#  File: Rakefile
 #  Author: alex@testcore.net
 #
 #  Standard task runner rakefile
