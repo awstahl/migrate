@@ -8,7 +8,7 @@ Gem::Specification.new do |spec|
   spec.add_development_dependency 'rspec', '~>0'
 
   spec.author = [ 'A. W. Stahl']
-  spec.date = '2016-05-19'
+  spec.date = '2016-09-14'
   spec.description = 'A Splunk migration and deployment tool'
   spec.email = 'alex@testcore.net'
   spec.executables << 'migrate'
@@ -17,6 +17,6 @@ Gem::Specification.new do |spec|
   spec.homepage = 'http://rubygems.org'
   spec.name = 'migrate'
   spec.summary = 'Splunk Migrator'
-  spec.version = '0.0.1'
+  spec.version = '1.0.0'
 
 end
