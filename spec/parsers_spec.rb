@@ -15,7 +15,7 @@ require "#{ File.dirname __FILE__ }/../lib/migrate/parsers"
 describe 'Migration Parsing' do
 
   before :all do
-    class Migration::Foo < Migration::Parser
+    class Migration::Foo < Migration::Parse
       class << self
         def parse(it)
           'pass'
@@ -29,23 +29,23 @@ describe 'Migration Parsing' do
   end
 
   it 'exists' do
-    expect( Object.const_defined? 'Migration::Parser' ).to be_truthy
+    expect( Object.const_defined? 'Migration::Parse' ).to be_truthy
   end
 
   it 'catches nil values' do
-    expect( Migration::Parser.parse nil ).to eq( nil )
+    expect( Migration::Parse.it nil ).to eq( nil )
   end
 
   it 'tracks its parsers' do
-    expect( Migration::Parser.children ).to include( Migration::Foo )
+    expect( Migration::Parse.children ).to include(Migration::Foo )
   end
 
   it 'selects a parser' do
-    expect( Migration::Parser.parse 'passme' ).to eq( 'pass' )
+    expect( Migration::Parse.it 'passme' ).to eq('pass' )
   end
 
   it 'returns the original value if no parser was found' do
-    expect( Migration::Parser.parse 'no parsers for me' ).to eq( 'no parsers for me' )
+    expect( Migration::Parse.it 'no parsers for me' ).to eq('no parsers for me' )
   end
 
 end
@@ -90,7 +90,7 @@ describe 'Migration Yaml Parsing' do
   end
 
   it 'is a parser' do
-    expect( Migration::YamlParser.ancestors[1] ).to eq( Migration::Parser )
+    expect( Migration::YamlParser.ancestors[1] ).to eq( Migration::Parse )
   end
 end
 
@@ -112,7 +112,7 @@ describe 'Migration Conf Parsing' do
   end
 
   it 'is a parser' do
-    expect( Migration::ConfParser.ancestors[1] ).to eq( Migration::Parser )
+    expect( Migration::ConfParser.ancestors[1] ).to eq( Migration::Parse )
   end
 end
 

@@ -13,18 +13,16 @@ module Migration
 
   # Parent class to handle selecting a printer
   # based on a filename.
-  class Printer < Parent
+  class Print < Parent
 
     @children = []
     class << self
       attr_reader :children
 
-      def print(file, content)
-        return nil unless file && content
-
-        printer = @children.find do |printer|
-          printer.valid? file
-        end
+      # def print(file, content)
+      def it(file, content)
+        return nil unless file && content  # prevents nasty nil exceptions
+        printer = find file
         printer ? printer.print( content ) : content
       end
     end
@@ -32,11 +30,11 @@ module Migration
 
 
   # Is not really a printer...
-  class IniPrinter
+  class IniPrint
 
     class << self
 
-      def print(header, data)
+      def it(header, data)
         out = "[#{ header }]\n"
         Valid.hash? data do
           data.keys.sort.each do |key|
@@ -49,7 +47,7 @@ module Migration
   end
 
 
-  class ConfPrinter < Printer
+  class ConfPrint < Print
 
     class << self
 

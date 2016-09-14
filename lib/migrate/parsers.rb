@@ -12,28 +12,24 @@ require "#{ File.dirname __FILE__ }/parents"
 
 module Migration
 
-  # Master Parser class to track others...
-  class Parser < Parent
+  # Master Parse class to track others...
+  class Parse < Parent
     @children = []
 
     class << self
 
-      def parse(it)
-
-        # Required to prevent calls to #valid? to fail awkwardly
-        return nil unless it
-
-        klass = Parser.children.find do |parser|
-          parser.valid? it
-        end
-        klass ? klass.parse( it ) : it
+      #def parse(it)
+      def it(content)
+        return nil unless content  # Required to prevent calls to #valid? to fail awkwardly
+        parser = find content
+        parser ? parser.parse( content ) : content
       end
     end
   end
 
   # The StanzaParser converts an INI-formatted text stanza and extracts it into a hash
   # TODO: Rewrite this to use Ini gem... maybe.
-  class StanzaParser < Parser
+  class StanzaParser < Parse
     MULTILINE = /\\$/
 
     class << self
@@ -87,7 +83,7 @@ module Migration
   end
 
   # The YamlParser loads a YAML string into its corresponding ruby data structure
-  class YamlParser < Parser
+  class YamlParser < Parse
     class << self
 
       def parse(yml)
@@ -104,11 +100,11 @@ module Migration
   end
 
   # The FileParser loads a string from a file then parses it
-  class FileParser < Parser
+  class FileParser < Parse
     class << self
 
       def parse(file)
-        Parser.parse File.read( file ) if valid? file
+        Parse.it File.read(file ) if valid? file
       end
 
       def valid?(file)
@@ -118,7 +114,7 @@ module Migration
   end
 
   # The ConfParser parses a stanza-based file into its constituent stanzas as an array
-  class ConfParser < Parser
+  class ConfParser < Parse
 
     class << self
       def parse(conf)
@@ -132,7 +128,7 @@ module Migration
   end
 
   # The ListParser creates an array from a multiline string
-  class ListParser < Parser
+  class ListParser < Parse
 
     class << self
       def parse(list)
@@ -145,7 +141,7 @@ module Migration
     end
   end
 
-  class PathParser < Parser
+  class PathParser < Parse
 
     class << self
       def parse(path)
