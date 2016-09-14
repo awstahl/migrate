@@ -63,6 +63,24 @@ describe 'Migration Artifact' do
     expect( @art.print ).to eq( "[artifact name]\nkey = val\n" )
   end
 
+  it 'knows if it has some data' do
+    expect( @art.has? 'key' ).to be_truthy
+  end
+
+  it 'knows if it does not have some data' do
+    expect( @art.has? 'foo' ).to be_falsey
+  end
+
+  it 'knows it does not have data' do
+    art = Migration::Artifact.new ''
+    expect( art.has? :it ).to be_falsey
+  end
+
+  it 'can fix some data' do
+    @art.fix! 'key', 'new val'
+    expect( @art.data[ 'key' ]).to eq( 'new val' )
+  end
+
 end
 
 describe 'Migration Application' do
@@ -232,7 +250,7 @@ describe 'Migration Application' do
   it 'can enumerate configured confs' do
     @app.configure
     @app.each do |conf|
-      expect( Array === conf ).to be_truthy
+      expect( @paths ).to include( conf )
     end
   end
 
@@ -242,6 +260,22 @@ describe 'Migration Application' do
       i += 1
     end
     expect( i ).to eq( 2 )
+  end
+
+  it 'can filter by arbitrary regex' do
+    i = 0
+    @app.each /local\/.+\.conf$/ do |conf|
+      i += 1
+    end
+    expect( i ).to eq( 1 )
+  end
+
+  it 'can yield the path and contents' do
+    @app.configure
+    @app.each /local\/.+\.conf$/ do |path, conf|
+      expect( @paths ).to include( path )
+      expect( Array === conf ).to be_truthy
+    end
   end
 
 end

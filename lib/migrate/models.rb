@@ -32,6 +32,15 @@ module Migration
       @printer.print @name, @data
     end
     alias :to_s :print
+
+    def has?(key)
+      Hash === @data and @data.key? key
+    end
+
+    def fix!(key, data)
+      # @modder.mod key, data
+    end
+
   end
 
   # An application is an encapsulation of the
@@ -137,7 +146,7 @@ module Migration
       end
 
       paths.each do |path|
-        yield retrieve path
+        yield path, retrieve( path )
       end
     end
   end
