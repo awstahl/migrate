@@ -17,7 +17,6 @@ module Migration
     @children = []
 
     class << self
-      attr_reader :children
 
       def parse(it)
 
