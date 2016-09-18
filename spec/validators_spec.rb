@@ -159,8 +159,31 @@ describe 'Migration Validator' do
     expect( Migration::Valid.yaml? nil ).to be_falsey
   end
 
-  it 'rejects non-string non-yaml paths' do
+  it 'rejects non-string non-yaml values' do
     expect( Migration::Valid.yaml? @pi ).to be_falsey
+  end
+
+
+  # XML tests
+
+  it 'validates an xml string' do
+    expect( Migration::Valid.xml? '<some xml attr=3.14 >abc</some>' ).to be_truthy
+  end
+
+  it 'checks for a well-formed xml doc' do
+    expect( Migration::Valid.xml? '<open tag> no close tag').to be_falsey
+  end
+
+  it 'does not perform full validation' do
+    expect( Migration::Valid.xml? '<open tag>contents</close>' ).to be_truthy
+  end
+
+  it 'rejects non-xml nil values' do
+    expect( Migration::Valid.xml? nil ).to be_falsey
+  end
+
+  it 'rejects non-string non-xml values' do
+    expect( Migration::Valid.xml? @pi ).to be_falsey
   end
 
 

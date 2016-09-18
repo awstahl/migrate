@@ -56,6 +56,10 @@ module Migration
         yml =~ /^-{3}\s/
       end
 
+      def xml?(xml)
+        xml =~ /^<.+?>.+<\/.+?>$/m  # Nokogiri parsing should handle anything more complex
+      end
+
       def conf?(conf)
         conf =~ /.+\n\n/
       end
