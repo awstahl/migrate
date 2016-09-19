@@ -99,6 +99,23 @@ module Migration
     end
   end
 
+  # The XmlParser creates a Nokogiri xml doc from the data
+  class XmlParser < Parse
+    class << self
+
+      def parse(xml)
+        if valid? xml
+          require 'nokogiri'
+          Nokogiri.parse xml
+        end
+      end
+
+      def valid?(xml)
+        Valid.xml? xml
+      end
+    end
+  end
+
   # The FileParser loads a string from a file then parses it
   class FileParser < Parse
     class << self

@@ -89,9 +89,33 @@ describe 'Migration Yaml Parsing' do
     expect( Migration::YamlParser.parse @str ).to include( 'migration' => %w(search eventtypes))
   end
 
-  it 'is a parser' do
+  it 'ignores non-yaml strings' do
+    expect( Migration::YamlParser.parse 'some nonsense%$#@' ).to eq( nil )
+  end
+
+  it 'is a Parse' do
     expect( Migration::YamlParser.ancestors[1] ).to eq( Migration::Parse )
   end
+end
+
+describe 'Migration XML Parsing' do
+
+  before :all do
+    @xml = "<open>\n  <head meta=true>content</head>\n  <para font=yes size=3.14>contents\nkey = val\nidx = 123\n  <\para>\n<\open>"
+  end
+
+  it 'parses xml documents' do
+    expect( Migration::XmlParser.parse( @xml ).child.node_name ).to eq( 'open' )
+  end
+
+  it 'ignores non-xml strings' do
+    expect( Migration::XmlParser.parse 'this is a sentence' ).to be_falsey
+  end
+
+  it 'is a Parse' do
+    expect( Migration::XmlParser.ancestors[1] ).to eq( Migration::Parse )
+  end
+
 end
 
 describe 'Migration Conf Parsing' do
