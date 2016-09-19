@@ -46,15 +46,15 @@ describe 'Migration Options' do
   end
 
   it 'parses an args array' do
-    expect( Migration::Options.parse(%w[opttesting -p foobar])[:string] ).to eq('the string to print back: foobar')
+    expect( Migration::Options.parse( %w[opttesting -p foobar] )[ :string ]).to eq( 'the string to print back: foobar' )
   end
 
   it 'provides help by default' do
-    expect { Migration::Options.parse %w[notacmd] }.to output("Usage: migrate <CMD>\n").to_stdout
+    expect { Migration::Options.parse %w[notacmd] }.to output( "Usage: migrate <CMD>\n" ).to_stdout
   end
 
   it 'provides help by default pt. 2' do
-    expect { Migration::Options.parse [] }.to output("Usage: migrate <CMD>\n").to_stdout
+    expect { Migration::Options.parse [] }.to output( "Usage: migrate <CMD>\n" ).to_stdout
   end
 
 end

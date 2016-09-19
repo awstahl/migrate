@@ -8,7 +8,7 @@
 class String
   def to_uri
     require 'uri'
-    URI.encode( self ).gsub(':', '%3A').gsub('*', '%2A')
+    URI.encode( self ).gsub( ':', '%3A' ).gsub( '*', '%2A' )
   end
 
   def to_plain
@@ -28,7 +28,7 @@ class Hash
       if v.is_a? Hash and not v.empty?
         out += v.to_paths prefix, stack
       else
-        out += ( prefix ? prefix : '' ) + stack.join('/') + "\n"
+        out += ( prefix ? prefix : '' ) + stack.join( '/' ) + "\n"
       end
 
       stack.pop
@@ -38,7 +38,7 @@ class Hash
 
   def deep_merge(other)
     self.merge! other do | k, v1, v2|
-      (Hash === v1 && Hash === v2) ? v1.deep_merge(v2) : v1
+      ( Hash === v1 && Hash === v2 ) ? v1.deep_merge( v2 ) : v1
     end
   end
 

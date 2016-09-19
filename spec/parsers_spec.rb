@@ -37,15 +37,15 @@ describe 'Migration Parsing' do
   end
 
   it 'tracks its parsers' do
-    expect( Migration::Parse.children ).to include(Migration::Foo )
+    expect( Migration::Parse.children ).to include( Migration::Foo )
   end
 
   it 'selects a parser' do
-    expect( Migration::Parse.it 'passme' ).to eq('pass' )
+    expect( Migration::Parse.it 'passme' ).to eq( 'pass' )
   end
 
   it 'returns the original value if no parser was found' do
-    expect( Migration::Parse.it 'no parsers for me' ).to eq('no parsers for me' )
+    expect( Migration::Parse.it 'no parsers for me' ).to eq( 'no parsers for me' )
   end
 
 end
@@ -86,7 +86,7 @@ describe 'Migration Yaml Parsing' do
   end
 
   it 'parses a yaml string' do
-    expect( Migration::YamlParser.parse @str ).to include( 'migration' => %w(search eventtypes))
+    expect( Migration::YamlParser.parse @str ).to include( 'migration' => %w[ search eventtypes ])
   end
 
   it 'ignores non-yaml strings' do

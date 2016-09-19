@@ -92,7 +92,6 @@ describe 'Migration Artifact' do
     end
     expect( @art.data[ 'key' ]).to eq( 'Value' )
   end
-
 end
 
 describe 'Migration Application' do
@@ -115,7 +114,7 @@ describe 'Migration Application' do
     allow( @container ).to receive( :name ).with( any_args ).and_return 'tstCntr'
 
     @print = double
-    allow(@print ).to receive( :it ).with(any_args ).and_return @conffile
+    allow( @print ).to receive( :it ).with( any_args ).and_return @conffile
   end
 
   before :all do
@@ -289,7 +288,6 @@ describe 'Migration Application' do
       expect( Array === conf ).to be_truthy
     end
   end
-
 end
 
 describe 'Migration Server Connection' do
@@ -333,7 +331,7 @@ describe 'Migration Server Connection' do
   end
 
   it 'executes remote commands' do
-    expect(( @conn ).exec 'll' ).to eq('/path/to/files...')
+    expect( @conn.exec( 'll' )).to eq( '/path/to/files...' )
   end
 end
 
@@ -407,7 +405,7 @@ describe 'Migration Server Itself' do
   def loop_paths
     @paths.each do |path, text|
       allow( @remote ).to receive( :exec! ).with( "cat #{ path }" ).and_return text
-      allow( @app ).to receive( :configure ).with(path, any_args ).and_return text
+      allow( @app ).to receive( :configure ).with( path, any_args ).and_return text
 
       text.each do |item|
         allow( @container ).to receive( :new ).with( item ).and_return item

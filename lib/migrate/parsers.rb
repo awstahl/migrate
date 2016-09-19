@@ -71,12 +71,12 @@ module Migration
         key = nil
 
         if line =~ /\s=\s{1}/
-          data = line.split(/\s=\s/).map { |m| m.strip }
+          data = line.split( /\s=\s/ ).map { |m| m.strip }
           key = data.first
           @results[ key ] = data.last
         end
 
-        (line =~ MULTILINE) ? key : nil
+        ( line =~ MULTILINE ) ? key : nil
       end
       private :extract
     end
@@ -121,7 +121,7 @@ module Migration
     class << self
 
       def parse(file)
-        Parse.it File.read(file ) if valid? file
+        Parse.it File.read( file ) if valid? file
       end
 
       def valid?(file)

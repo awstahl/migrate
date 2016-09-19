@@ -75,7 +75,7 @@ module Migration
     private :refresh_paths
 
     def add_file(file)
-      ( parse_file(file ) && @paths << file ) unless @paths.include? file
+      ( parse_file( file ) && @paths << file ) unless @paths.include? file
     end
     private :add_file
 
@@ -127,11 +127,11 @@ module Migration
 
     def print(file=nil)
       if file
-        @printer.it file, retrieve(file) if Valid.path? file
+        @printer.it file, retrieve( file ) if Valid.path? file
       else
         out = {}
         @paths.each do |path|
-          out[ path ] = @printer.it path, retrieve(path )
+          out[ path ] = @printer.it path, retrieve( path )
         end
         out
       end
