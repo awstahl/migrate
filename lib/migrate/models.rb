@@ -14,24 +14,52 @@ module Migration
 
   # An Artifact is a 'parsed data' container
   class Artifact
-    attr_accessor :printer
-    attr_reader :data, :name, :source
+    extend Parent
+    @children = []
+    attr_reader :data, :source
+
+    class << self
+
+      def produce(source)
+        art = find source
+        art.new source
+      end
+
+    end
 
     def initialize(source)
       @source = source
-      @printer = IniPrinter
       parse
     end
 
     def parse(parse=Parse)
       @data = parse.it @source
+    end
+
+    def print(print=Print)
+      print.it @data
+    end
+
+  end
+
+  # An Ini (stanza, not file) is a specific type of artifact
+  class Ini < Artifact
+    attr_accessor :printer
+    attr_reader :name
+
+    def initialize(source)
+      super
+      @printer = Print::Ini
+    end
+
+    def parse(parser=Parse)
+      super
       @name = @data.delete @data.keys.find {|key| key =~ /name/ } if Hash === @data
     end
 
     def print
       @printer.print @name, @data
     end
-    alias :to_s :print
 
     def has?(key)
       Hash === @data and @data.key? key
@@ -40,6 +68,22 @@ module Migration
     def fix!(key, content=nil, &block)
       return false unless has? key
       data[ key ] = ( block_given? ? yield( data[ key ]) : content )
+    end
+  end
+
+  class Xml < Artifact
+
+    def has?(node)
+      return nil unless @data.respond_to? :xpath
+      array = @data.xpath "//#{ node }"
+      array.size > 0 ? array : nil
+    end
+
+    def fix!(name, content=nil, &block)
+      return false unless has? name
+      @data.xpath( "//#{ name }").each do |node|
+        node.content = ( block_given? ? yield( node.content ) : content )
+      end
     end
   end
 
@@ -96,8 +140,11 @@ module Migration
       pointer[ key ] = [] unless Array === pointer
 
       content = Parse.it( fetch_file file )
+
+      # TODO: does it need to force an array?
       content = [ content ] unless Valid.array? content
       content.each do |stanza|
+        # TODO: once Artifact factory exists, this should be container.produce
         pointer[ key ] << container.new( stanza )
       end
     end

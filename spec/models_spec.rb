@@ -13,14 +13,15 @@ describe 'Migration Artifact' do
 
   def mocks
     @parser = double
-    allow( @parser ).to receive( :it ).and_return({ a: 1, b: 2, 'name' => 'mockd' })
+    allow( @parser ).to receive( :it ).and_return( @source.split )
 
-    @print = double
-    allow( @print ).to receive( :print ).with( any_args ).and_return 'Damn yer pirate, feed the ale.'
+    @printer = double
+    allow( @printer ).to receive( :it ).and_return( { str: 'a string of text' })
   end
 
   before :all do
-    @source = "[artifact name]\nkey = val\n"
+    class ArtSpec < Migration::Artifact; end
+    @source = 'a string of text'
   end
 
   before :each do
@@ -36,62 +37,185 @@ describe 'Migration Artifact' do
     expect( @art.source ).to eq( @source )
   end
 
-  it 'uses a default parser to parse' do
-    expect( @art.data[ 'key' ]).to eq( 'val' )
+  it 'tracks its children' do
+    expect( Migration::Artifact.children ).to include( ArtSpec )
   end
 
-  it 'parses the name from the source' do
-    expect( @art.name ).to eq( 'artifact name' )
+  it 'attempts to parse on instantiation' do
+    expect( @art.data ).to eq( @source )
   end
 
   it 'can inject a parser' do
     @art.parse @parser
-    expect( @art.name ).to eq( 'mockd' )
+    expect( @art.data ).to eq( @source.split )
+  end
+
+  it 'has a default printer' do
+    expect( @art.print ).to eq( 'a string of text' )
+  end
+
+  it 'can inject a printer' do
+    expect( @art.print @printer ).to eq( { str: 'a string of text' })
+  end
+
+  it 'can produce a child' do
+    expect( Migration::Artifact.produce( "[artifact name]\nkey = val\n" ).class ).to eq( Migration::Ini )
+  end
+
+end
+
+describe 'Migration Ini' do
+
+  def mocks
+    @parser = double
+    allow( @parser ).to receive( :it ).and_return({ a: 1, b: 2, 'name' => 'mockd' })
+
+    @print = double
+    allow( @print ).to receive( :print ).with( any_args ).and_return 'Damn yer pirate, feed the ale.'
+  end
+
+  before :all do
+    @source = "[artifact name]\nkey = val\n"
+  end
+
+  before :each do
+    mocks
+    @ini = Migration::Ini.new @source
+  end
+
+  it 'exists' do
+    expect( @ini ).to be_truthy
+  end
+
+  it 'uses a default parser to parse' do
+    expect( @ini.data[ 'key' ]).to eq( 'val' )
+  end
+
+  it 'parses the name from the source' do
+    expect( @ini.name ).to eq( 'artifact name' )
+  end
+
+  it 'can inject a parser' do
+    @ini.parse @parser
+    expect( @ini.name ).to eq( 'mockd' )
   end
 
   it 'accepts a printer' do
-    @art.printer = @print
-    expect( @art.printer ).to eq( @print )
+    @ini.printer = @print
+    expect( @ini.printer ).to eq( @print )
   end
 
   it 'uses the printer to print' do
-    @art.printer = @print
-    expect( @art.print ).to eq( 'Damn yer pirate, feed the ale.' )
+    @ini.printer = @print
+    expect( @ini.print ).to eq( 'Damn yer pirate, feed the ale.' )
   end
 
   it 'defaults to the ini printer' do
-    expect( @art.print ).to eq( "[artifact name]\nkey = val\n" )
+    expect( @ini.print ).to eq( "[artifact name]\nkey = val\n" )
   end
 
   it 'knows if it has some data' do
-    expect( @art.has? 'key' ).to be_truthy
+    expect( @ini.has? 'key' ).to be_truthy
   end
 
   it 'knows if it does not have some data' do
-    expect( @art.has? 'foo' ).to be_falsey
+    expect( @ini.has? 'foo' ).to be_falsey
   end
 
   it 'knows it does not have data' do
-    art = Migration::Artifact.new ''
-    expect( art.has? :it ).to be_falsey
+    ini = Migration::Ini.new ''
+    expect( ini.has? :it ).to be_falsey
   end
 
   it 'can fix some data' do
-    @art.fix! 'key', 'new val'
-    expect( @art.data[ 'key' ]).to eq( 'new val' )
+    @ini .fix! 'key', 'new val'
+    expect( @ini.data[ 'key' ]).to eq( 'new val' )
   end
 
   it 'only fixes data it has' do
-    expect( @art.fix! 'notakey' ).to be_falsey
+    expect( @ini.fix! 'notakey' ).to be_falsey
   end
 
   it 'can fix with a block' do
-    @art.fix! 'key' do |content|
+    @ini.fix! 'key' do |content|
       content.gsub! /^va/, 'Va'
       content.gsub /l$/, 'lue'
     end
-    expect( @art.data[ 'key' ]).to eq( 'Value' )
+    expect( @ini.data[ 'key' ]).to eq( 'Value' )
   end
+
+  it 'is an Artifact' do
+    expect( Migration::Ini.ancestors[1] ).to eq( Migration::Artifact )
+  end
+
+  it 'can validate an ini string' do
+    expect( @ini.valid? @source ).to be_truthy
+  end
+
+end
+
+describe 'Migration Xml' do
+
+  def mocks
+
+  end
+
+  before :all do
+    @source = File.open( "#{ File.dirname __FILE__ }/data/sample.xml", 'r' ).read
+  end
+
+  before :each do
+    mocks
+    @xml = Migration::Xml.new @source
+  end
+
+  it 'exists' do
+    expect( @xml ).to be_truthy
+  end
+
+  it 'is an Artifact' do
+    expect( Migration::Xml.ancestors[1]).to eq( Migration::Artifact )
+  end
+
+  it 'parses data to an xml doc' do
+    expect( @xml.data.class ).to eq( Nokogiri::XML::Document )
+  end
+
+  it 'knows if it has some xml data' do
+    expect( @xml.has? 'query' ).to be_truthy
+  end
+
+  it 'knows if it does not have some xml data' do
+    expect( @xml.has? 'not.a.tag.at.all').to be_falsey
+  end
+
+  it 'knows it does not have data' do
+    xml = Migration::Xml.new ''
+    expect( xml.has? 'query' ).to be_falsey
+  end
+
+  it 'can fix xml data' do
+    @xml.fix! 'query', 'lol all replaced'
+    @xml.data.xpath( '//query' ).each do |query|
+      expect( query.content ).to eq( 'lol all replaced' )
+    end
+  end
+
+  it 'only fixes xml data it has' do
+    expect( @xml.fix! 'notanode', 'does not matter').to be_falsey
+  end
+
+  it 'can fix xml with a block' do
+
+    @xml.fix! 'query' do |query|
+      query.gsub /index=mpos/, 'index=mpos*'
+    end
+
+    @xml.data.xpath( '//query' ).each do |query|
+      expect( query.content ).to match( /index=mpos*/ )
+    end
+  end
+
 end
 
 describe 'Migration Application' do
