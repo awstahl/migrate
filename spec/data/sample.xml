@@ -1,0 +1,210 @@
+<dashboard>
+  <label>MPOS Error Dashboard</label>
+  <row>
+    <panel>
+      <table>
+        <title>Stores Today</title>
+        <search>
+          <query>index=mpos eventtype="completedTransaction"  | stats count | join type=outer [search index=mpos eventtype="MPOS_CallVoiceError" | stats count as errorcount3] |  join type=outer [search index=mpos eventtype="CustomError" | transaction host maxspan=3m  | stats count as errorcount] |  join type=outer [search index=mpos eventtype="Error6007_CreditSwipe" | stats count as errorcount2]  | sort -count |  eval CV_Rate=(errorcount3/count)*100 | fieldformat CV_Rate=tostring(round(CV_Rate,2))+"%" | eval Custom_Rate=(errorcount/count)*100 | fieldformat Custom_Rate=tostring(round(Custom_Rate,2))+"%" | eval Error_6007_Rate=(errorcount2/count)*100 | fieldformat Error_6007_Rate=tostring(round(Error_6007_Rate,2))+"%" |  table count, errorcount3, CV_Rate, errorcount, Custom_Rate, errorcount2, Error_6007_Rate | rename count as "Transactions", errorcount3 as "Call Voice 201 Errors", errorcount as "Custom Errors", errorcount2 as "Error 6007 (CS)"</query>
+          <earliest>@d</earliest>
+          <latest>now</latest>
+        </search>
+      </table>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <table>
+        <title>Custom &amp; 6007 Card Swipe Errors (Today)</title>
+        <search>
+          <query>index=mpos eventtype="completedTransaction" | stats count |join type=outer [search index=mpos eventtype="CustomError" | transaction host maxspan=3m  | stats count as errorcount] | join type=outer [search index=mpos eventtype="Error6007_CreditSwipe" | stats count as errorcount2]  | sort -count | eval Custom_Error_Rate=(errorcount/count)*100 | fieldformat Custom_Error_Rate=tostring(round(Custom_Error_Rate,2))+"%" | eval Error_6007_Rate=(errorcount2/count)*100 | fieldformat Error_6007_Rate=tostring(round(Error_6007_Rate,2))+"%" | table count, errorcount, Custom_Error_Rate, errorcount2, Error_6007_Rate | rename count as "Total Transactions", errorcount as "Custom Errors", errorcount2 as "Error 6007 on Credit Swipe"</query>
+          <earliest>@d</earliest>
+          <latest>now</latest>
+        </search>
+      </table>
+    </panel>
+    <panel>
+      <chart>
+        <title>All mpos errors - last 90</title>
+        <search ref="All mpos errors - last 90"></search>
+        <option name="charting.axisLabelsX.majorLabelStyle.overflowMode">ellipsisNone</option>
+        <option name="charting.axisLabelsX.majorLabelStyle.rotation">0</option>
+        <option name="charting.axisTitleX.visibility">visible</option>
+        <option name="charting.axisTitleY.visibility">visible</option>
+        <option name="charting.axisTitleY2.visibility">visible</option>
+        <option name="charting.axisX.scale">linear</option>
+        <option name="charting.axisY.scale">linear</option>
+        <option name="charting.axisY2.enabled">false</option>
+        <option name="charting.axisY2.scale">inherit</option>
+        <option name="charting.chart">line</option>
+        <option name="charting.chart.bubbleMaximumSize">50</option>
+        <option name="charting.chart.bubbleMinimumSize">10</option>
+        <option name="charting.chart.bubbleSizeBy">area</option>
+        <option name="charting.chart.nullValueMode">gaps</option>
+        <option name="charting.chart.sliceCollapsingThreshold">0.01</option>
+        <option name="charting.chart.stackMode">default</option>
+        <option name="charting.chart.style">shiny</option>
+        <option name="charting.drilldown">all</option>
+        <option name="charting.layout.splitSeries">0</option>
+        <option name="charting.legend.labelStyle.overflowMode">ellipsisMiddle</option>
+        <option name="charting.legend.placement">right</option>
+      </chart>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <table>
+        <title>Custom &amp; 6007 Card Swipe Errors (Last 14 Days)</title>
+        <search>
+          <query>index=mpos eventtype="completedTransaction"
+| timechart count span=1d
+| append
+  [search index=mpos eventtype="CustomError"
+   | transaction host maxspan=3m 
+   | timechart count as errorcount span=1d
+  ]
+| append
+  [search index=mpos eventtype="Error6007_CreditSwipe"
+   | timechart count as errorcount2 span=1d
+  ] 
+| stats first(*) as * by _time
+| eval Custom_Error_Rate=(errorcount/count)*100
+| fieldformat Custom_Error_Rate=tostring(round(Custom_Error_Rate,2))+"%"
+| eval Error_6007_Rate=(errorcount2/count)*100
+| fieldformat Error_6007_Rate=tostring(round(Error_6007_Rate,2))+"%"
+| rename count as "Total Transactions", errorcount as "Custom Errors", errorcount2 as "Error 6007 Card Swipe"</query>
+          <earliest>-14d@d</earliest>
+          <latest>now</latest>
+        </search>
+      </table>
+    </panel>
+    <panel>
+      <table>
+        <title>Custom &amp; 6007 Card Swipe Errors (Last 12 weeks) *Error 6007 change applied 11/3</title>
+        <search>
+          <query>index=mpos eventtype="completedTransaction" | timechart count span=1w | append [search index=mpos eventtype="CustomError" | transaction host maxspan=3m  | timechart count as errorcount span=1w] | append [search index=mpos eventtype="Error6007_CreditSwipe" | timechart count as errorcount2 span=1w ]  | stats first(*) as * by _time | eval Custom_Error_Rate=(errorcount/count)*100 | fieldformat Custom_Error_Rate=tostring(round(Custom_Error_Rate,2))+"%" | eval Error_6007_Rate=(errorcount2/count)*100 | fieldformat Error_6007_Rate=tostring(round(Error_6007_Rate,2))+"%" | rename count as "Total Transactions", errorcount as "Custom Errors", errorcount2 as "Error 6007 Card Swipe"</query>
+          <earliest>-12w@w</earliest>
+          <latest>now</latest>
+        </search>
+      </table>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <table>
+        <title>Custom Error - All Stores (Today)</title>
+        <search>
+          <query>index=mpos sourcetype=production eventtype="completedTransaction" | stats count by storeNo, storeName, volume | fillnull value=0 errorcount | fillnull value=0 count | join storeNo type=outer [search sourcetype=production eventtype="CustomError" | transaction host maxspan=3m | stats count as errorcount by storeNo] | sort -count | eval Ratio=(errorcount/count)*100 | fieldformat Ratio=tostring(round(Ratio,1))+"%" | table storeNo, storeName, count, errorcount, Ratio | rename storeNo as "Store Number", storeName as "Store Name", count as "Transactions", errorcount as "Custom Errors", volume as Volume | sort by -"Custom Errors"</query>
+          <earliest>@d</earliest>
+          <latest>now</latest>
+        </search>
+        <option name="wrap">true</option>
+        <option name="rowNumbers">false</option>
+        <option name="dataOverlayMode">none</option>
+        <option name="drilldown">cell</option>
+        <option name="count">10</option>
+      </table>
+    </panel>
+    <panel>
+      <table>
+        <title>Custom Error - All Stores (Yesterday)</title>
+        <search>
+          <query>index=mpos sourcetype=production eventtype="completedTransaction" | stats count by storeNo, storeName, volume | fillnull value=0 errorcount | fillnull value=0 count | join storeNo type=outer [search sourcetype=production eventtype="CustomError" | transaction host maxspan=3m | stats count as errorcount by storeNo] | sort -count | eval Ratio=(errorcount/count)*100 | fieldformat Ratio=tostring(round(Ratio,1))+"%" | table storeNo, storeName, count, errorcount, Ratio | rename storeNo as "Store Number", storeName as "Store Name", count as "Transactions", errorcount as "Custom Errors", volume as Volume | sort by -Ratio</query>
+          <earliest>-1d@d</earliest>
+          <latest>@d</latest>
+        </search>
+        <option name="wrap">true</option>
+        <option name="rowNumbers">false</option>
+        <option name="dataOverlayMode">none</option>
+        <option name="drilldown">cell</option>
+        <option name="count">10</option>
+      </table>
+    </panel>
+    <panel>
+      <table>
+        <title>Custom Error - All Stores (Last 7 Days)</title>
+        <search>
+          <query>index=mpos sourcetype=production eventtype="completedTransaction" | stats count by storeNo, storeName, volume | fillnull value=0 errorcount | fillnull value=0 count | join storeNo type=outer [search sourcetype=production eventtype="CustomError" | transaction host maxspan=3m | stats count as errorcount by storeNo] | sort -count | eval Ratio=(errorcount/count)*100 | fieldformat Ratio=tostring(round(Ratio,1))+"%" | table storeNo, storeName, count, errorcount, Ratio | rename storeNo as "Store Number", storeName as "Store Name", count as "Transactions", errorcount as "Custom Errors", volume as Volume | sort by -Ratio</query>
+          <earliest>-7d@h</earliest>
+          <latest>now</latest>
+        </search>
+      </table>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <table>
+        <title>MPOS Error 6007 Credit Swipe - All Stores (Today)</title>
+        <search>
+          <query>index=mpos sourcetype=production eventtype="completedTransaction" | stats count by storeNo, storeName, volume | fillnull value=0 errorcount | fillnull value=0 count | join storeNo type=outer [search index=mpos sourcetype=production eventtype="Error6007_CreditSwipe" | transaction host maxspan=3m | stats count as errorcount by storeNo] | sort -count | eval Ratio=(errorcount/count)*100 | fieldformat Ratio=tostring(round(Ratio,1))+"%" | table storeNo, storeName, count, errorcount, Ratio | rename storeNo as "Store Number", storeName as "Store Name", count as "Transactions", errorcount as "6007 Errors", volume as Volume | sort by -"6007 Errors"</query>
+          <earliest>@d</earliest>
+          <latest>now</latest>
+        </search>
+      </table>
+    </panel>
+    <panel>
+      <table>
+        <title>MPOS Error 6007 Credit Swipe - All Stores (Yesterday)</title>
+        <search>
+          <query>index=mpos sourcetype=production eventtype="completedTransaction" | stats count by storeNo, storeName, volume | fillnull value=0 errorcount | fillnull value=0 count | join storeNo type=outer [search index=mpos sourcetype=production eventtype="Error6007_CreditSwipe" | transaction host maxspan=3m | stats count as errorcount by storeNo] | sort -count | eval Ratio=(errorcount/count)*100 | fieldformat Ratio=tostring(round(Ratio,1))+"%" | table storeNo, storeName, count, errorcount, Ratio | rename storeNo as "Store Number", storeName as "Store Name", count as "Transactions", errorcount as "6007 Errors", volume as Volume | sort by -Ratio</query>
+          <earliest>-1d@d</earliest>
+          <latest>@d</latest>
+        </search>
+      </table>
+    </panel>
+    <panel>
+      <table>
+        <title>MPOS Error 6007 Credit Swipe - All Stores (Last 7 Days)</title>
+        <search>
+          <query>index=mpos sourcetype=production eventtype="completedTransaction" | stats count by storeNo, storeName, volume | fillnull value=0 errorcount | fillnull value=0 count | join storeNo type=outer [search index=mpos sourcetype=production eventtype="Error6007_CreditSwipe" | transaction host maxspan=3m | stats count as errorcount by storeNo] | sort -count | eval Ratio=(errorcount/count)*100 | fieldformat Ratio=tostring(round(Ratio,1))+"%" | table storeNo, storeName, count, errorcount, Ratio | rename storeNo as "Store Number", storeName as "Store Name", count as "Transactions", errorcount as "6007 Errors", volume as Volume | sort by -Ratio</query>
+          <earliest>-7d@h</earliest>
+          <latest>now</latest>
+        </search>
+      </table>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <table>
+        <title>Custom Errors (Last 24 Hours)</title>
+        <search>
+          <query>index=mpos eventtype="CustomError" | transaction host maxspan=3m | table _time, host, storeName | rename host as "Device Name", storeName as "Store Name"</query>
+          <earliest>-24h@h</earliest>
+          <latest>now</latest>
+        </search>
+        <option name="wrap">true</option>
+        <option name="rowNumbers">false</option>
+        <option name="dataOverlayMode">none</option>
+        <option name="drilldown">cell</option>
+        <option name="count">100</option>
+      </table>
+    </panel>
+    <panel>
+      <table>
+        <title>Error 6007 - Credit Swipe (Last 24 Hours)</title>
+        <search>
+          <query>index=mpos eventtype="Error6007_CreditSwipe" | transaction host maxspan=3m | table _time, host, storeName | rename host as "Device Name", storeName as "Store Name"</query>
+          <earliest>-24h@h</earliest>
+          <latest>now</latest>
+        </search>
+        <option name="wrap">true</option>
+        <option name="rowNumbers">false</option>
+        <option name="dataOverlayMode">none</option>
+        <option name="drilldown">cell</option>
+        <option name="count">100</option>
+      </table>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <event>
+        <title>MPOS Call Voice Errors</title>
+        <search>
+          <query>index=mpos eventtype=mposCardAuthError</query>
+          <earliest>-24h@h</earliest>
+          <latest>now</latest>
+        </search>
+      </event>
+    </panel>
+  </row>
+</dashboard>
