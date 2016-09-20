@@ -13,7 +13,8 @@ require "#{ File.dirname __FILE__ }/parents"
 module Migration
 
   # Master Parse class to track others...
-  class Parse < Parent
+  class Parse
+    extend Parent
     @children = []
 
     class << self

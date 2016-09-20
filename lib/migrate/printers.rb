@@ -13,7 +13,8 @@ module Migration
 
   # Parent class to handle selecting a printer
   # based on a filename.
-  class Print < Parent
+  class Print
+    extend Parent
 
     @children = []
     class << self
@@ -21,8 +22,8 @@ module Migration
 
       def it(content, file=nil)
         return nil unless content
-        printer = ( file ? find( file ) : Default )
-        # printer ? printer.print( content ) : content
+        printer = find file if file
+        printer ||= Default
         printer.print content
       end
     end
