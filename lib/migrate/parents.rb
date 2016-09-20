@@ -8,22 +8,16 @@
 
 module Migration
 
-  class Parent
+  module Parent
+    attr_reader :children
 
-    # OBS: this is not inherited, yet can be
-    # accessed by subclasses in #inherited
-    @children = []
-    class << self
-      attr_reader :children
+    def inherited(klass)
+      @children << klass
+    end
 
-      def inherited(klass)
-        @children << klass
-      end
-
-      def find(it)
-        @children.find do |child|
-          child.valid? it
-        end
+    def find(it)
+      @children.find do |child|
+        child.valid? it
       end
     end
   end
