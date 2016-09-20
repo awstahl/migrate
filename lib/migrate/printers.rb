@@ -19,36 +19,44 @@ module Migration
     class << self
       attr_reader :children
 
-      # def print(file, content)
-      def it(file, content)
-        return nil unless file && content  # prevents nasty nil exceptions
-        printer = find file
-        printer ? printer.print( content ) : content
+      def it(content, file=nil)
+        return nil unless content
+        printer = ( file ? find( file ) : Default )
+        # printer ? printer.print( content ) : content
+        printer.print content
       end
     end
-  end
 
-
-  # Is not really a printer...
-  class IniPrinter
-
-    class << self
-
-      def print(header, data)
-        out = "[#{ header }]\n"
-        Valid.hash? data do
-          data.keys.sort.each do |key|
-            out += "#{ key } = #{ data[ key ]}\n"
-          end
+    # Child classes under Print are data, and not file-type, based
+    class Default
+      class << self
+        def print(it)
+          it.to_s
         end
-        out
+      end
+    end
+
+    # Print an Ini stanza from a header & hash
+    class Ini
+      class << self
+
+        def print(header, data)
+          out = "[#{ header }]\n"
+          Valid.hash? data do
+            data.keys.sort.each do |key|
+              out += "#{ key } = #{ data[ key ]}\n"
+            end
+          end
+          out
+        end
       end
     end
   end
 
 
+  # Subclassed printers are for a specific filetype
+  # and can implement a unique #valid? test
   class ConfPrinter < Print
-
     class << self
 
       def print(stanzas)

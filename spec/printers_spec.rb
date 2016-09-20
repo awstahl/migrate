@@ -30,8 +30,12 @@ describe 'Migration Printing' do
     expect( Object.const_defined? 'Migration::Print' ).to be_truthy
   end
 
-  it 'catches nil values' do
-    expect( Migration::Print.it nil, nil ).to be_falsey
+  it 'calls #to_s on the given param by default' do
+    expect( Migration::Print.it %w[ a b c ]).to eq( "[\"a\", \"b\", \"c\"]" )
+  end
+
+  it 'cannot print nil values' do
+    expect( Migration::Print.it nil ).to be_falsey
   end
 
   it 'tracks its printers' do
@@ -39,28 +43,52 @@ describe 'Migration Printing' do
   end
 
   it 'selects a printer based on file name' do
-    expect( Migration::Print.it 'foo.conf', %w[ free as in beer ] ).to eq( "free\nas\nin\nbeer" )
+    expect( Migration::Print.it %w[ free as in beer ], 'foo.conf' ).to eq( "free\nas\nin\nbeer" )
   end
 
   it 'returns the content if no printer is found' do
-    expect( Migration::Print.it 'file.bin', "\0\0\0\0\0" ).to eq( "\0\0\0\0\0" )
+    expect( Migration::Print.it "\0\0\0\0\0", 'file.bin' ).to eq( "\0\0\0\0\0" )
   end
 
 end
 
+
+describe 'Migration Default printing' do
+
+  before :each do
+    @anything = double
+    allow( @anything ).to receive( :to_s ).and_return 'all your base are belong to us'
+  end
+
+  it 'exists' do
+    expect( Object.const_defined? 'Migration::Print::Default')
+  end
+
+  it 'calls to_s  on the param' do
+    expect( Migration::Print::Default.print %w[ a b c ] ).to eq( "[\"a\", \"b\", \"c\"]" )
+  end
+
+  it 'calls to_s on anything' do
+    expect( Migration::Print::Default.print @anything ).to eq( 'all your base are belong to us' )
+  end
+
+end
+
+
 describe 'Migration ini stanza printing' do
 
   it 'exists' do
-    expect( Object.const_defined? 'Migration::IniPrinter' ).to be_truthy
+    # expect( Object.const_defined? 'Migration::IniPrinter' ).to be_truthy
+    expect( Object.const_defined? 'Migration::Print::Ini' ).to be_truthy
   end
 
   it 'prints an ini stanza from a header string and hash' do
-    expect( Migration::IniPrinter.print 'test ini stanza', enabled: true, zeta: 'maybe', queue: false ).to \
+    expect( Migration::Print::Ini.print 'test ini stanza', enabled: true, zeta: 'maybe', queue: false ).to \
     eq( "[test ini stanza]\nenabled = true\nqueue = false\nzeta = maybe\n" )
   end
 
   it 'requires a valid hash' do
-    expect( Migration::IniPrinter.print 3.14, 'not a hash' ).to eq( "[3.14]\n")
+    expect( Migration::Print::Ini.print 3.14, 'not a hash' ).to eq( "[3.14]\n")
   end
 
 end
