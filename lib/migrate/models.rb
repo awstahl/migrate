@@ -22,6 +22,7 @@ module Migration
 
       def produce(source)
         art = find source
+        art ||= Artifact
         art.new source
       end
 
@@ -46,6 +47,14 @@ module Migration
   class Ini < Artifact
     attr_accessor :printer
     attr_reader :name
+
+    class << self
+
+      def valid?(ini)
+        Valid.ini? ini
+      end
+
+    end
 
     def initialize(source)
       super
@@ -72,6 +81,14 @@ module Migration
   end
 
   class Xml < Artifact
+
+    class << self
+
+      def valid?(xml)
+        Valid.xml? xml
+      end
+
+    end
 
     def has?(node)
       return nil unless @data.respond_to? :xpath
@@ -144,8 +161,7 @@ module Migration
       # TODO: does it need to force an array?
       content = [ content ] unless Valid.array? content
       content.each do |stanza|
-        # TODO: once Artifact factory exists, this should be container.produce
-        pointer[ key ] << container.new( stanza )
+        pointer[ key ] << container.produce( stanza )
       end
     end
     private :populate

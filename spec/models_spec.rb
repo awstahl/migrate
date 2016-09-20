@@ -24,6 +24,10 @@ describe 'Migration Artifact' do
     @source = 'a string of text'
   end
 
+  after :all do
+    Migration::Artifact.children.delete ArtSpec
+  end
+
   before :each do
     mocks
     @art = Migration::Artifact.new @source
@@ -149,7 +153,7 @@ describe 'Migration Ini' do
   end
 
   it 'can validate an ini string' do
-    expect( @ini.valid? @source ).to be_truthy
+    expect( Migration::Ini.valid? @source ).to be_truthy
   end
 
 end
@@ -216,6 +220,10 @@ describe 'Migration Xml' do
     end
   end
 
+  it 'can validate an xml string' do
+    expect( Migration::Xml.valid? @source ).to be_truthy
+  end
+
 end
 
 describe 'Migration Application' do
@@ -226,7 +234,7 @@ describe 'Migration Application' do
     allow( @porter ).to receive( :list ).with( any_args ).and_return @paths
 
     @portwo = double
-    allow( @portwo ).to receive( :get ).with( any_args ).and_return @stanza
+    allow( @portwo ).to receive( :get ).with( any_args ).and_return "#{ @stanza }\n"
     allow( @portwo ).to receive( :list ).with( any_args ).and_return @paths
 
     @portre = double
@@ -234,7 +242,7 @@ describe 'Migration Application' do
     allow( @portre ).to receive( :list ).with( any_args ).and_return @paths
 
     @container = double
-    allow( @container ).to receive( :new ).with( any_args ).and_return @container
+    allow( @container ).to receive( :produce ).with( any_args ).and_return @container
     allow( @container ).to receive( :name ).with( any_args ).and_return 'tstCntr'
 
     @print = double
@@ -324,6 +332,7 @@ describe 'Migration Application' do
     expect( @app.conf[ 'local' ][ 'inputs.conf' ].first.name ).to eq( 'tstCntr' )
   end
 
+  # *** BUG HERE ***
   it 'wraps parsing results in an array' do
     @skel.porter = @portre
     @skel.configure 'local/inputs.conf'
