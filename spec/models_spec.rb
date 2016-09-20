@@ -160,16 +160,11 @@ end
 
 describe 'Migration Xml' do
 
-  def mocks
-
-  end
-
   before :all do
     @source = File.open( "#{ File.dirname __FILE__ }/data/sample.xml", 'r' ).read
   end
 
   before :each do
-    mocks
     @xml = Migration::Xml.new @source
   end
 
@@ -349,6 +344,11 @@ describe 'Migration Application' do
     expect( @app.retrieve( 'local/inputs.conf').first.name ).to eq( 'artifact name' )
   end
 
+  it 'can filter conf files by regex' do
+    @app.configure /\.(conf|xml)$/
+    expect( @app.retrieve( 'local/inputs.conf').first.name ).to eq( 'artifact name' )
+  end
+
   it 'can use the porter to list paths' do
     app = Migration::Application.new root: '/path/to/nowhere', porter: @porter
     expect( app.paths ).to eq( @paths )
@@ -421,6 +421,7 @@ describe 'Migration Application' do
       expect( Array === conf ).to be_truthy
     end
   end
+
 end
 
 describe 'Migration Server Connection' do

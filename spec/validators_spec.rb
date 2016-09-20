@@ -190,7 +190,11 @@ describe 'Migration Validator' do
   # Conf text tests
 
   it 'validates a conf string' do
-    expect( Migration::Valid.conf? "a\n\nb" ).to be_truthy
+    expect( Migration::Valid.conf? "a\n\nb\n\n" ).to be_truthy
+  end
+
+  it 'rejects single-stanza conf strings' do
+    expect( Migration::Valid.conf? "abc\n\n" ).to be_falsey
   end
 
   it 'rejects a non-conf string' do

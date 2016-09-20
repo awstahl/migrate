@@ -170,7 +170,13 @@ module Migration
       refresh_paths
 
       if file
-        populate file, container if @paths.include? file
+        if Regexp === file
+          @paths.select {|path| path =~ file }.each do |path|
+            populate path, container
+          end
+        else
+          populate file, container if @paths.include? file
+        end
       else
         @paths.each do |path|
           populate path, container
