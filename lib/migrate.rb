@@ -1,1 +1,1 @@
-require "#{ File.dirname __FILE__ }/migrate/models.rb"
+require "#{ File.dirname __FILE__ }/migrate/artifacts.rb"
