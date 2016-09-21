@@ -106,6 +106,10 @@ describe 'Migration Validator' do
     expect( Migration::Valid.relative_path? 'foobar/' ).to be_truthy
   end
 
+  it 'recognizes an absolute path' do
+    expect( Migration::Valid.relative_path? '/abs/path' ).to be_falsey
+  end
+
   it 'rejects non-relative nil values' do
     expect( Migration::Valid.relative_path? nil ).to be_falsey
   end
@@ -191,6 +195,10 @@ describe 'Migration Validator' do
 
   it 'validates a conf string' do
     expect( Migration::Valid.conf? "a\n\nb\n\n" ).to be_truthy
+  end
+
+  it 'needs two stanzas' do
+    expect( Migration::Valid.conf? "a\n\nb" ).to be_truthy
   end
 
   it 'rejects single-stanza conf strings' do

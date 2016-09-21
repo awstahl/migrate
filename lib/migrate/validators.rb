@@ -10,7 +10,7 @@ module Migration
 
     class << self
 
-      # TODO: DRY these out with method_missing...
+      # TODO: DRY these out with method_missing...?!?
       # Those that take blocks are helpers for the others...
       def string?(string, &block)
         String === string  && string !~ /\0/ && ( block_given? ? yield( string ) : true )
@@ -36,7 +36,7 @@ module Migration
 
       def relative_path?(path)
         string? path do
-          path =~ /\// && path.split( '/' ).size > 0
+          path =~ /^[^\/]+\// && path.split( '/' ).size > 0
         end
       end
 
@@ -61,7 +61,7 @@ module Migration
       end
 
       def conf?(conf)
-        conf =~ /(.+?\n\n){2,}/
+        conf =~ /.+?\n\n.+/
       end
 
       def list?(list)
