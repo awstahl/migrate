@@ -5,6 +5,7 @@
 #  This is a set of classes that models config data.
 
 require "#{ File.dirname __FILE__ }/exceptions"
+require "#{ File.dirname __FILE__ }/logger"
 require "#{ File.dirname __FILE__ }/server"
 require "#{ File.dirname __FILE__ }/sugar"
 require "#{ File.dirname __FILE__ }/parents"
@@ -21,6 +22,7 @@ module Migration
       def produce(content)
         art = Artifact.find content
         art ||= Artifact
+        Log.puts "Creating #{ art } artifact"
         art.new content
       end
     end
@@ -51,18 +53,13 @@ module Migration
 
     # Container for conf files w/ multiple stanzas
     class Conf < Artifact
+      include Enumerable
       attr_reader :path, :content
 
       class << self
         def valid?(conf)
           Valid.conf? conf
         end
-      end
-
-      def initialize(path:, content:)
-        raise InvalidPath unless Valid.absolute_path? path
-        @path = path
-        super content
       end
 
       def parse
@@ -72,6 +69,12 @@ module Migration
           artifacts << Artifacts.produce( stanza )
         end
         @data = artifacts
+      end
+
+      def each
+        @data.each do |stanza|
+          yield stanza
+        end
       end
     end
 
@@ -141,6 +144,7 @@ module Migration
   # data within a given structured subdirectory
   class Application
     include Enumerable
+    include Log
     attr_accessor :porter, :printer
     attr_reader :conf, :name, :paths, :porter, :root
 
@@ -173,7 +177,6 @@ module Migration
     private :add_file
 
     def fetch_file(file)
-      puts "Fetching file: #{ file }"
       @porter.get file if @porter
     end
     private :fetch_file
@@ -183,47 +186,36 @@ module Migration
     end
     private :parse_file
 
-
-    # TODO: Migrate this to a file class... IN PROGRESS
     def populate(file)
-      key = File.basename file
-      pointer = retrieve File.dirname file
-      pointer[ key ] = [] unless Array === pointer[ key ]
-      pointer[ key ] << Migration::Artifacts.produce( fetch_file file )
+      with_logging 'starting populate' do |log|
 
-      # content = Parse.it( fetch_file file )
-      # # TODO: does it need to force an array?  NO!
-      # content = [ content ] unless Valid.array? content
-      # content.each do |stanza|
-      #   pointer[ key ] << container.produce( stanza )
-      # end
+        key = File.basename file
+        pointer = retrieve "#{ File.dirname file }/"
+        log.puts "populating pointer: #{ pointer } using key: #{ key }"
+
+        pointer[ key ] = [] unless Array === pointer[ key ]
+        artifact = Migration::Artifacts.produce( fetch_file file )
+        artifact.is_a?( Enumerable ) ? pointer[ key ] = artifact : pointer[ key ] << artifact
+        log.puts "populated: #{ pointer[ key ].last } which is a #{ pointer[ key ].last.class }"
+
+      end
     end
     private :populate
 
-=begin
-    def configure(file=nil, container=Migration::Artifacts)
-      refresh_paths
-
-      if file
-        if Regexp === file
-          @paths.select {|path| path =~ file }.each do |path|
-            populate path, container
-          end
-        elsif @paths.include? file
-          populate file, container
-        end
-      else
-        @paths.each do |path|
-          populate path, container
+    def conf_paths(paths)
+      with_logging "Found paths, configuring..." do |log|
+        paths.each do |path|
+          log.puts "populating path: #{ path }"
+          populate path
         end
       end
     end
-=end
 
-    def configure()
-      @paths.each do |path|
-        puts "App configuring path: #{ path }"
-        populate path
+    def configure(filter=/.+/)
+      refresh_paths
+      with_logging "Configuring app with filter #{ filter }" do |log|
+        pattern = ( Regexp === filter ? filter : /#{ filter }/)
+        conf_paths @paths.select {|path| path =~ pattern }
       end
     end
 

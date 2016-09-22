@@ -1,4 +1,4 @@
-require './lib/migrate.rb'
+require './lib/migrate/artifacts'
 
 Conf = { connection: {
   host: 'tewuvadspl06.tew.sephoraus.com',

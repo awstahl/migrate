@@ -16,9 +16,14 @@ module Migration
       def file=(log)
         @log = log if log.respond_to? :puts
       end
+
+      def puts(event='')
+        file.puts "#{ Time.now } #{ event }"
+      end
     end
 
-    def with_logging
+    def with_logging(event='')
+      Log.puts event
       yield Log.file
     end
   end

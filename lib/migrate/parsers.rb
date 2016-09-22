@@ -25,7 +25,7 @@ module Migration
       def it(content)
         return nil unless content  # Required to prevent calls to #valid? to fail awkwardly
         parser = find content
-        puts "Picked parser: #{ parser }"
+        Log.puts "Parsing with parser: #{ parser }"
         parser ? parser.parse( content ) : content
       end
     end

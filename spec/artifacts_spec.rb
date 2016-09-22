@@ -108,27 +108,11 @@ describe 'Migration Conf' do
   end
 
   before :each do
-    @content = Conf.new path: @confpath, content: @conf
+    @content = Conf.new @conf
   end
 
   it 'exists' do
     expect( @content ).to be_truthy
-  end
-
-  it 'accepts a file path' do
-    expect( @content.path ).to eq( @confpath )
-  end
-
-  it 'requires a file path' do
-    expect { Conf.new }.to raise_exception( ArgumentError )
-  end
-
-  it 'requires content' do
-    expect { Conf.new path: @confpath }.to raise_exception( ArgumentError )
-  end
-
-  it 'requires an absolute path' do
-    expect { Conf.new path: 'relative/file/path', content: @conf }.to raise_exception( Migration::InvalidPath )
   end
 
   it 'accepts a source' do
@@ -154,6 +138,23 @@ describe 'Migration Conf' do
 
   it 'parses array contents to Artifacts' do
     expect( @content.data.first.is_a? Migration::Artifacts::Artifact ).to be_truthy
+  end
+
+  it 'offers an enumerator' do
+    expect( @content.respond_to? :each ).to be_truthy
+  end
+
+  it 'is enumerable' do
+    expect( @content.is_a? Enumerable ).to be_truthy
+  end
+
+  it 'enumerates its stanzas' do
+    iter = false
+    @content.each do |stanza|
+      iter = true
+      expect( Migration::Artifacts::Ini === stanza ).to be_truthy
+    end
+    expect( iter ).to be_truthy
   end
 
 end
@@ -344,7 +345,7 @@ describe 'Migration Application' do
     @paths << 'default/data/ui/views/main.xml'
     @paths << 'local/inputs.conf'
     @stanza = "[artifact name]\nkey = val\n"
-    @conffile = "#{ @stanza }\n\n[art Two]\nskel = lock"
+    @conffile = "#{ @stanza }\n[art Two]\nskel = lock"
   end
 
   before :each do
@@ -380,14 +381,15 @@ describe 'Migration Application' do
 
   it 'can be configured' do
     @app.configure
-    # expect( @app.conf[ 'local' ][ 'inputs.conf' ].first.name ).to eq( 'artifact name' )
-    # expect( @app.conf[ 'local' ][ 'inputs.conf' ].last.name ).to eq( 'art Two' )
+    expect( @app.conf[ 'local' ][ 'inputs.conf' ].first.name ).to eq( 'artifact name' )
+    expect( @app.conf[ 'local' ][ 'inputs.conf' ].last.name ).to eq( 'art Two' )
     expect( @app.conf[ 'local' ][ 'inputs.conf' ].size ).to eq( 2 )
   end
 
   it 'can configure a file' do
     @app.configure 'local/inputs.conf'
     expect( @app.conf[ 'local' ][ 'inputs.conf' ].first.name ).to eq( 'artifact name' )
+    expect( @app.conf[ 'default' ][ 'app.conf' ]).to eq({})
   end
 
   it 'configures single-stanza confs' do
@@ -410,11 +412,6 @@ describe 'Migration Application' do
     @skel.porter = @porter
     @skel.configure 'local/inputs.conf'
     expect( @skel.conf[ 'local' ][ 'inputs.conf' ].first.name ).to eq( 'artifact name' )
-  end
-
-  it 'can inject a new container for parsed file data' do
-    @app.configure 'local/inputs.conf', @container
-    expect( @app.conf[ 'local' ][ 'inputs.conf' ].first.name ).to eq( 'tstCntr' )
   end
 
   # *** BUG HERE ***
@@ -508,7 +505,7 @@ describe 'Migration Application' do
     @app.configure
     @app.each /local\/.+\.conf$/ do |path, conf|
       expect( @paths ).to include( path )
-      expect( Array === conf ).to be_truthy
+      expect( conf.is_a? Enumerable ).to be_truthy
     end
   end
 
