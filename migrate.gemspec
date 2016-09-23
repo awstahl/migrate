@@ -22,5 +22,5 @@ Gem::Specification.new do |spec|
   spec.name = 'migrate'
   spec.summary = 'Configuration Migration Toolkit'
 
-  spec.version = '1.1.0'
+  spec.version = '1.1.1'
 end
