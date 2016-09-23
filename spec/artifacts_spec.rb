@@ -186,6 +186,10 @@ describe 'Migration Ini' do
     expect( @ini.data[ 'key' ]).to eq( 'val' )
   end
 
+  it 'can access data with arbitrary methods' do
+    expect( @ini.key ).to eq( 'val' )
+  end
+
   it 'parses the name from the source' do
     expect( @ini.name ).to eq( 'artifact name' )
   end
