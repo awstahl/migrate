@@ -62,7 +62,7 @@ module Migration
 
       def print(stanzas)
         Valid.array? stanzas do
-          stanzas.join "\n"
+          stanzas.map {|stanza| stanza.print }.join "\n"
         end
       end
 
@@ -71,4 +71,5 @@ module Migration
       end
     end
   end
+
 end

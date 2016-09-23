@@ -96,12 +96,25 @@ end
 
 describe 'Migration conf file printing' do
 
+  before :all do
+    @dmtch = /[0-9]{4}(-[0-9]{2}){2}\s([0-9]{2}:?){3}\s-[0-9]{4}/
+  end
+
+  before :each do
+    @printme = double
+    allow( @printme ).to receive( :print ).and_return( "#{ Time.now } printed!\n" )
+  end
+
   it 'exists' do
     expect( Object.const_defined? 'Migration::ConfPrinter' ).to be_truthy
   end
 
   it 'prints a conf file' do
     expect( Migration::ConfPrinter.print [ "stanza\n", "block\n", "line\n" ]).to eq( "stanza\n\nblock\n\nline\n" )
+  end
+
+  it 'prints an array & contents' do
+    expect( Migration::ConfPrinter.print [ @printme, @printme, @printme ]).to match( /(#{ @dmtch }\sprinted!\n\n?){3}/ )
   end
 
   it 'requires an array to print' do
