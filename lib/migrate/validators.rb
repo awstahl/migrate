@@ -65,7 +65,11 @@ module Migration
       end
 
       def list?(list)
-        list =~ /\n/ and not conf? list
+        list =~ /\n/ and
+            not ini? list and
+            not yaml? list and
+            not xml? list and
+            not conf? list
       end
 
       def path_array?(paths)
