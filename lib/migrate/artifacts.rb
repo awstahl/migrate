@@ -141,6 +141,7 @@ module Migration
         return false unless has? name
 
         @data.xpath( "//#{ name }").each do |node|
+          Log.puts "Iterating #{ name } with node: #{ node.content }"
           block_given? ? yield( node.content ) : node.content = content
         end
       end
