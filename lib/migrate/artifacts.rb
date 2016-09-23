@@ -202,20 +202,12 @@ module Migration
     end
     private :populate
 
-    def conf_paths(paths)
-      with_logging "Found paths, configuring..." do |log|
-        paths.each do |path|
-          log.puts "populating path: #{ path }"
-          populate path
-        end
-      end
-    end
-
     def configure(filter=/.+/)
       refresh_paths
       with_logging "Configuring app with filter #{ filter }" do |log|
-        pattern = ( Regexp === filter ? filter : /#{ filter }/)
-        conf_paths @paths.select {|path| path =~ pattern }
+        self.each filter do |path|
+          populate path
+        end
       end
     end
 
@@ -241,13 +233,9 @@ module Migration
       end
     end
 
-    def each(filter=nil)
-      paths = nil
-      if filter
-        paths = @paths.select {|path| path =~ filter}
-      else
-        paths = @paths
-      end
+    def each(filter=/.+/)
+      pattern = ( Regexp === filter ? filter : /#{ filter }/)
+      paths = @paths.select {|path| path =~ pattern }
 
       paths.each do |path|
         yield path, retrieve( path )

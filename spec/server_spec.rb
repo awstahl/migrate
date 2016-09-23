@@ -120,14 +120,18 @@ describe 'Migration Server Itself' do
     allow( @app ).to receive( :paths ).and_return @paths.keys
     allow( @app ).to receive( :porter= ).and_return true
     allow( @app ).to receive( :root ).and_return '/path/to/app'
+
     @app2 = double @app
+    allow( @app2 ).to receive( :name ).and_return 'mockAppTwo'
     allow( @app2 ).to receive( :paths ).and_return @paths.keys.select {|key| key =~ @filter }
+    allow( @app2 ).to receive( :porter= ).and_return true
   end
 
   def loop_paths
     @paths.each do |path, text|
       allow( @remote ).to receive( :exec! ).with( "cat #{ path }" ).and_return text
       allow( @app ).to receive( :configure ).with( path, any_args ).and_return text
+      allow( @app2 ).to receive( :configure ).with( /\.conf$/, any_args ).and_return text
 
       text.each do |item|
         allow( @container ).to receive( :new ).with( item ).and_return item
@@ -136,6 +140,7 @@ describe 'Migration Server Itself' do
   end
 
   before :each do
+    @filter = /\.conf$/
     @paths = {
         '/path/to/app/default/file.conf' => %w[ Dozens of tragedies will be lost in beauties like sonic showers in understandings ],
         '/path/to/app/default/other.conf' => %w[ Not heavens or hell, absorb the samadhi. ],
@@ -177,7 +182,7 @@ describe 'Migration Server Itself' do
 
   it 'can fetch filtered configs' do
     @srv.fetch @app2, @filter
-    expect( @srv.apps[ @app.name ].paths ).to eq( %w[ /path/to/app/default/file.conf /path/to/app/default/other.conf ])
+    expect( @srv.apps[ @app2.name ].paths ).to eq( %w[ /path/to/app/default/file.conf /path/to/app/default/other.conf ])
   end
 
 end

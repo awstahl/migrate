@@ -120,7 +120,7 @@ describe 'Migration Conf' do
   end
 
   it 'is an artifact' do
-    expect( Conf.ancestors[1]).to eq( Migration::Artifacts::Artifact )
+    expect( Conf.ancestors[2]).to eq( Migration::Artifacts::Artifact )
   end
 
   it 'validates a multi-stanza file' do

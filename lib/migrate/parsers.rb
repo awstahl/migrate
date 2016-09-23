@@ -8,6 +8,7 @@
 # noinspection RubyResolve
 require "#{ File.dirname __FILE__ }/validators"
 require "#{ File.dirname __FILE__ }/parents"
+require "#{ File.dirname __FILE__ }/logger"
 
 
 # TODO: Shore up the pattern...

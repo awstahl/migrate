@@ -34,7 +34,7 @@ describe 'Migration Logger' do
       end
     end
 
-    dmtch = /[0-9]{4}(-[0-9]{2}){2}\s([0-9]{2}:?){3}\s-[0-9]{4}/
+    @dmtch = /[0-9]{4}(-[0-9]{2}){2}\s([0-9]{2}:?){3}\s-[0-9]{4}/
   end
 
   after :all do
