@@ -46,6 +46,10 @@ module Migration
         print.it @data
       end
 
+      def fix!(it)
+        block_given? ? yield( @data ) : @data = it
+      end
+
       def method_missing(key)
         @data.send key
       end
