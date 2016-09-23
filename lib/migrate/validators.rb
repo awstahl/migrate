@@ -49,7 +49,7 @@ module Migration
       end
 
       def ini?(ini)
-        ini =~ /^\[.+\]\n.+=.+/m and not conf? ini
+        ini =~ /^\[.+\]\n/m and not conf? ini
       end
 
       def yaml?(yml)
