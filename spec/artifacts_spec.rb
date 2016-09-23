@@ -157,6 +157,10 @@ describe 'Migration Conf' do
     expect( iter ).to be_truthy
   end
 
+  it 'can print itself' do
+    expect( @content.print ).to eq( '' )
+  end
+
 end
 
 describe 'Migration Ini' do

@@ -76,6 +76,13 @@ module Migration
           yield stanza
         end
       end
+
+      def print
+        conf = ''
+        @data.each do |stanza|
+          conf += "#{ stanza.print }\n"
+        end
+      end
     end
 
     # An Ini (stanza, not file) is a specific type of artifact

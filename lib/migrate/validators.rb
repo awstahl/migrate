@@ -61,7 +61,7 @@ module Migration
       end
 
       def conf?(conf)
-        conf =~ /.+?\n\n.+/
+        conf =~ /.+?\n\n/
       end
 
       def list?(list)
