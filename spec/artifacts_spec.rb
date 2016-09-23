@@ -158,7 +158,7 @@ describe 'Migration Conf' do
   end
 
   it 'can print itself' do
-    expect( @content.print ).to eq( '' )
+    expect( @content.print ).to eq( File.open( @confpath, 'r' ).read )
   end
 
 end

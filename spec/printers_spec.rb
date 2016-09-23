@@ -125,6 +125,10 @@ describe 'Migration conf file printing' do
     expect( Migration::ConfPrinter.valid? 'file.conf').to be_truthy
   end
 
+  it 'validates an array' do
+    expect( Migration::ConfPrinter.valid? %w[ 1 2 3 ]).to be_truthy
+  end
+
   it 'is a printer' do
     expect( Migration::ConfPrinter.ancestors[ 1 ]).to eq( Migration::Print )
   end

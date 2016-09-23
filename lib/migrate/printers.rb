@@ -24,6 +24,7 @@ module Migration
         return nil unless content
         printer = find file if file
         printer ||= Default
+        Migration::Log.puts "Selected a printer: #{ printer }"
         printer.print content
       end
     end
@@ -62,12 +63,12 @@ module Migration
 
       def print(stanzas)
         Valid.array? stanzas do
-          stanzas.map {|stanza| stanza.print }.join "\n"
+          stanzas.map {|stanza| stanza.respond_to?( :print ) ? stanza.print : stanza }.join "\n"
         end
       end
 
       def valid?(conf)
-        Valid.confname? conf
+        Valid.confname? conf or Valid.array? conf
       end
     end
   end

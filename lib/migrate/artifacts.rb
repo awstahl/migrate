@@ -78,10 +78,7 @@ module Migration
       end
 
       def print
-        conf = ''
-        @data.each do |stanza|
-          conf += "#{ stanza.print }\n"
-        end
+        ConfPrinter.print @data
       end
     end
 
