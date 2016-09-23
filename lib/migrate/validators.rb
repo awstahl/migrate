@@ -57,7 +57,7 @@ module Migration
       end
 
       def xml?(xml)
-        xml =~ /^<.+?>.+<\/.+?>$/m  # Nokogiri parsing should handle anything more complex
+        xml =~ /^<.+?>.+<\/.+?>\s*$/m  # Nokogiri parsing should handle anything more complex
       end
 
       def conf?(conf)
