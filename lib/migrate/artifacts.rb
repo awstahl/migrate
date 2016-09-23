@@ -113,7 +113,8 @@ module Migration
 
       def fix!(key, content=nil, &block)
         return false unless has? key
-        @data[ key ] = ( block_given? ? yield( @data[ key ]) : content )
+        # @data[ key ] = ( block_given? ? yield( @data[ key ]) : content )
+        block_given? ? yield( @data[ key ]) : @data[ key ] = content
       end
 
       def method_missing(key)

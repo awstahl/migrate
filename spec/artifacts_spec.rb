@@ -242,7 +242,7 @@ describe 'Migration Ini' do
   it 'can fix with a block' do
     @ini.fix! 'key' do |content|
       content.gsub! /^va/, 'Va'
-      content.gsub /l$/, 'lue'
+      content.gsub! /l$/, 'lue'
     end
     expect( @ini.data[ 'key' ]).to eq( 'Value' )
   end
