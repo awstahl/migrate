@@ -142,7 +142,9 @@ module Migration
 
         @data.xpath( "//#{ name }").each do |node|
           Log.puts "Iterating #{ name } with node: #{ node.content }"
+          # node.content = ( block_given? ? yield( node.content ) : content )
           block_given? ? yield( node.content ) : node.content = content
+          Log.puts "Node content set to: #{ node.content }"
         end
       end
     end

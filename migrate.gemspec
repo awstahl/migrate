@@ -7,7 +7,7 @@ Gem::Specification.new do |spec|
 
   spec.add_development_dependency 'rspec', '~>0'
   spec.author = [ 'A. W. Stahl']
-  spec.date = '2016-09-18'
+  spec.date = '2016-09-19'
 
   spec.description = 'A configuration migration and deployment tool. Fetch existing confs, parse & modify, then print.'
   spec.email = 'alex@testcore.net'
@@ -22,5 +22,5 @@ Gem::Specification.new do |spec|
   spec.name = 'migrate'
   spec.summary = 'Configuration Migration Toolkit'
 
-  spec.version = '1.1.3.8'
+  spec.version = '1.1.3.9'
 end
