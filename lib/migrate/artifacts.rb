@@ -51,7 +51,7 @@ module Migration
       end
 
       def method_missing(key)
-        @data.send key
+        @data.send key if @data.respond_to? key
       end
     end
 
