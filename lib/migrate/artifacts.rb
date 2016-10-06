@@ -117,8 +117,8 @@ module Migration
 
       def fix!(key, content=nil, &block)
         return false unless has? key
-        # @data[ key ] = ( block_given? ? yield( @data[ key ]) : content )
-        block_given? ? yield( @data[ key ]) : @data[ key ] = content
+        @data[ key ] = ( block_given? ? yield( @data[ key ]) : content )
+        # block_given? ? yield( @data[ key ]) : @data[ key ] = content
       end
 
       def method_missing(key)
@@ -147,6 +147,10 @@ module Migration
         @data.xpath( "//#{ name }").each do |node|
           node.content = ( block_given? ? yield( node.content ) : content )
         end
+      end
+
+      def method_missing(element)
+        @data.xpath "//#{ element }"
       end
     end
 
