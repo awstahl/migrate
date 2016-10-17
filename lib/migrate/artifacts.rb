@@ -135,6 +135,10 @@ module Migration
         end
       end
 
+      def initialize(xml)
+        super xml
+      end
+
       def has?(node)
         return nil unless @data.respond_to? :xpath
         array = @data.xpath "//#{ node }"

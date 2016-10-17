@@ -3,7 +3,7 @@
 #  Author: alex@testcore.net
 #
 
-VERSION = '1.1.3.15'
+VERSION = '1.1.3.16'
 
 Gem::Specification.new do |spec|
 
