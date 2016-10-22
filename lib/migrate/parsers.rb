@@ -22,7 +22,6 @@ module Migration
 
     class << self
 
-      #def parse(it)
       def it(content)
         return nil unless content  # Required to prevent calls to #valid? to fail awkwardly
         parser = find content
@@ -33,7 +32,6 @@ module Migration
   end
 
   # The StanzaParser converts an INI-formatted text stanza and extracts it into a hash
-  # TODO: Rewrite this to use Ini gem... maybe.
   class StanzaParser < Parse
     MULTILINE = /\\$/
 

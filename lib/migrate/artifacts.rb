@@ -81,6 +81,16 @@ module Migration
         end
       end
 
+      def find(filter=/.*/)
+        pattern = ( Regexp === filter ? filter : /#{ filter }/)
+        @data.find {|ini| ini.name =~ pattern }
+      end
+
+      def add(stanza)
+        art = Artifacts.produce stanza
+        @data << art if art
+      end
+
       def print
         ConfPrinter.print @data
       end
@@ -174,57 +184,58 @@ module Migration
       @name = Parse.it( root ).last
       @porter = porter
       @printer = Print
-      refresh_paths
-      parse @paths
+      reconfigure
     end
 
-    def parse(paths)
+    def reconfigure
+      @paths = ( @porter ? @porter.list( @root ) : [] )
       @conf = {}
-      paths.each do |path|
-        @conf.deep_merge parse_file( path )
+      @paths.each do |path|
+        configure_file path
       end
     end
-    private :parse
+    private :reconfigure
 
-    def refresh_paths
-      @paths = ( @porter ? @porter.list( @root ) : [] )
-      parse @paths
+    def configure_file(path)
+      @conf.deep_merge path_to_keys( path )
     end
-    private :refresh_paths
-
-    def add_file(file)
-      ( parse_file( file ) && @paths << file ) unless @paths.include? file
-    end
-    private :add_file
+    private :configure_file
 
     def fetch_file(file)
       @porter.get file if @porter
     end
     private :fetch_file
 
-    def parse_file(path)
+    def add_file(file, contents=nil)
+      @paths << file unless @paths.include? file
+      configure_file file
+      populate file, contents
+    end
+
+    def path_to_keys(path)
       PathHashParser.parse( path )
     end
-    private :parse_file
+    private :path_to_keys
 
-    def populate(file)
+    def populate(file, contents=nil)
+
       with_logging 'starting populate' do |log|
-
         key = File.basename file
         pointer = retrieve "#{ File.dirname file }/"
-        log.puts "populating pointer: #{ pointer } using key: #{ key }"
 
+        log.puts "populating pointer: #{ pointer } using key: #{ key }"
         pointer[ key ] = [] unless Array === pointer[ key ]
-        artifact = Migration::Artifacts.produce( fetch_file file )
+        contents ||= fetch_file file
+        artifact = Migration::Artifacts.produce( contents )
+
         artifact.is_a?( Enumerable ) ? pointer[ key ] = artifact : pointer[ key ] << artifact
         log.puts "populated: #{ pointer[ key ].last } which is a #{ pointer[ key ].last.class }"
-
       end
     end
     private :populate
 
     def configure(filter=/.+/)
-      refresh_paths
+      reconfigure
       with_logging "Configuring app with filter #{ filter }" do |log|
         self.each filter do |path|
           populate path

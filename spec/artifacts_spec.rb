@@ -120,7 +120,7 @@ describe 'Migration Conf' do
   end
 
   it 'is an artifact' do
-    expect( Conf.ancestors[2]).to eq( Migration::Artifacts::Artifact )
+    expect( Conf.ancestors[2] ).to eq( Migration::Artifacts::Artifact )
   end
 
   it 'validates a multi-stanza file' do
@@ -159,6 +159,24 @@ describe 'Migration Conf' do
 
   it 'can print itself' do
     expect( @content.print ).to eq( File.open( @confpath, 'r' ).read )
+  end
+
+  it 'can find a stanza by name' do
+    expect( @content.find( 'Test Cee' ).class ).to eq( Migration::Artifacts::Ini )
+  end
+
+  it 'can find a stanza by regex' do
+    expect( @content.find( /stb$/ ).class ).to eq( Migration::Artifacts::Ini )
+  end
+
+  it 'returns nil for unmatched stanzas' do
+    expect( @content.find /^nomatch$/  ).to eq( nil )
+  end
+
+  it 'can add a stanza' do
+    stanza = "[louis the fourteenth]\nalpha = yes\nbeta = yes\nnerd = harder\nindex = true\n"
+    @content.add stanza
+    expect( @content.find( 'louis the fourteenth' ).name ).to eq( 'louis the fourteenth' )
   end
 
 end
@@ -515,6 +533,16 @@ describe 'Migration Application' do
       expect( @paths ).to include( path )
       expect( conf.is_a? Enumerable ).to be_truthy
     end
+  end
+
+  it 'can add a file' do
+    @app.add_file 'local/nonsense.conf'
+    expect( @app.paths ).to include( 'local/nonsense.conf' )
+  end
+
+  it 'can add a file with contents' do
+    @app.add_file 'local/nonsense.conf', @conffile
+    expect( @app.retrieve( 'local/nonsense.conf' ).first.name ).to eq( 'artifact name' )
   end
 
 end
