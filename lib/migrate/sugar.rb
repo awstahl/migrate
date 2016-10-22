@@ -5,6 +5,12 @@
 #  ADd some sugar onto the core classes.
 
 
+class Object
+  def to_rex
+    ( Regexp === self ) ? self : /#{ self }/
+  end
+end
+
 class String
   def to_uri
     require 'uri'

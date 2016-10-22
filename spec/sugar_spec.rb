@@ -27,6 +27,10 @@ describe 'Some Sugar' do
     }
   end
 
+  it 'adds to_rex to Object' do
+    expect( 'abc'.to_rex ).to eq( /abc/ )
+  end
+
   it 'adds to_uri to strings' do
     expect( 'a b c :*'.to_uri ).to eq( 'a%20b%20c%20%3A%2A')
   end
