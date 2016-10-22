@@ -179,6 +179,12 @@ describe 'Migration Conf' do
     expect( @content.find( 'louis the fourteenth' ).name ).to eq( 'louis the fourteenth' )
   end
 
+  it 'can push a stanza' do
+    stanza = "[louis the fourteenth]\nalpha = yes\nbeta = yes\nnerd = harder\nindex = true\n"
+    @content << stanza
+    expect( @content.find( 'louis the fourteenth' ).name ).to eq( 'louis the fourteenth' )
+  end
+
 end
 
 describe 'Migration Ini' do
@@ -341,6 +347,8 @@ end
 describe 'Migration Application' do
 
   def mocks
+    @paths = @plist.clone
+
     @porter = double
     allow( @porter ).to receive( :get ).with( any_args ).and_return @conffile
     allow( @porter ).to receive( :list ).with( any_args ).and_return @paths
@@ -362,14 +370,14 @@ describe 'Migration Application' do
   end
 
   before :all do
-    @paths = []
-    @paths << 'bin/deploy.rb'
-    @paths << 'bin/script.rb'
-    @paths << 'default/app.conf'
-    @paths << 'default/data/models/model.xml'
-    @paths << 'default/data/ui/nav/bar.xml'
-    @paths << 'default/data/ui/views/main.xml'
-    @paths << 'local/inputs.conf'
+    @plist = []
+    @plist << 'bin/deploy.rb'
+    @plist << 'bin/script.rb'
+    @plist << 'default/app.conf'
+    @plist << 'default/data/models/model.xml'
+    @plist << 'default/data/ui/nav/bar.xml'
+    @plist << 'default/data/ui/views/main.xml'
+    @plist << 'local/inputs.conf'
     @stanza = "[artifact name]\nkey = val\n"
     @conffile = "#{ @stanza }\n[art Two]\nskel = lock"
   end
@@ -559,6 +567,20 @@ describe 'Migration Application' do
 
   it 'can only add to existing files' do
     expect( @app.add_stanza 'local/nonsense.conf', @stanza ).to be_falsey
+  end
+
+  it 'can fetch content of all files matching a criteria' do
+    @app.configure 'local/inputs.conf'
+    expect( @app.contents /\.conf$/  ).to be_a_kind_of( Enumerable )
+  end
+
+  it 'cat apply a block to content of all files matching a criteria' do
+    @app.configure
+    files = []
+    @app.contents /\.conf$/ do |file, contents|
+      files << file
+    end
+    expect( files.sort ).to eq( @paths.select{|file| file =~ /\.conf$/}.sort )
   end
 
 end

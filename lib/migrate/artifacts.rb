@@ -82,14 +82,14 @@ module Migration
       end
 
       def find(filter=/.*/)
-        pattern = ( Regexp === filter ? filter : /#{ filter }/)
-        @data.find {|ini| ini.name =~ pattern }
+        @data.find {|ini| ini.name =~ filter.to_rex }
       end
 
       def add(stanza)
         art = ( stanza.kind_of?( Artifact ) ? stanza : Artifacts.produce( stanza ))
         @data << art if art
       end
+      alias :<< :add
 
       def print
         ConfPrinter.print @data
@@ -215,7 +215,21 @@ module Migration
     def add_stanza(file, contents)
       return nil unless @paths.include? file
       pointer = retrieve file
-      pointer.add contents
+
+      if pointer.size > 0
+        pointer << contents
+      else
+        pointer = Migration::Artifacts.produce contents
+      end
+    end
+
+    def contents(ffilt=/.*/)
+      files = @paths.select {|path| path =~ ffilt.to_rex }
+      files.map do |file|
+        content = retrieve file
+        yield file, content if block_given?
+        file
+      end
     end
 
     def path_to_keys(path)
@@ -272,8 +286,7 @@ module Migration
     end
 
     def each(filter=/.+/)
-      pattern = ( Regexp === filter ? filter : /#{ filter }/)
-      paths = @paths.select {|path| path =~ pattern }
+      paths = @paths.select {|path| path =~ filter.to_rex }
 
       paths.each do |path|
         yield path, retrieve( path )
