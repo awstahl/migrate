@@ -542,7 +542,23 @@ describe 'Migration Application' do
 
   it 'can add a file with contents' do
     @app.add_file 'local/nonsense.conf', @conffile
-    expect( @app.retrieve( 'local/nonsense.conf' ).first.name ).to eq( 'artifact name' )
+    expect( @app.retrieve( 'local/nonsense.conf' ).last.name ).to eq( 'art Two' )
+  end
+
+  it 'overwrites existing files' do
+    @app.add_file 'local/nonsense.conf', @conffile
+    @app.add_file 'local/nonsense.conf', @stanza
+    expect( @app.retrieve( 'local/nonsense.conf' ).last.name ).to eq( 'artifact name' )
+  end
+
+  it 'can add a stanza to a file' do
+    @app.add_file 'local/nonsense.conf', @conffile
+    @app.add_stanza 'local/nonsense.conf', @stanza
+    expect( @app.retrieve( 'local/nonsense.conf' ).last.name ).to eq( 'artifact name' )
+  end
+
+  it 'can only add to existing files' do
+    expect( @app.add_stanza 'local/nonsense.conf', @stanza ).to be_falsey
   end
 
 end

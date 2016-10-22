@@ -87,7 +87,7 @@ module Migration
       end
 
       def add(stanza)
-        art = Artifacts.produce stanza
+        art = ( stanza.kind_of?( Artifact ) ? stanza : Artifacts.produce( stanza ))
         @data << art if art
       end
 
@@ -210,6 +210,12 @@ module Migration
       @paths << file unless @paths.include? file
       configure_file file
       populate file, contents
+    end
+
+    def add_stanza(file, contents)
+      return nil unless @paths.include? file
+      pointer = retrieve file
+      pointer.add contents
     end
 
     def path_to_keys(path)
