@@ -214,7 +214,10 @@ module Migration
 
     def add_stanza(file, contents)
       return nil unless @paths.include? file
+      puts "fucking add_stanza adding to file: #{ file }"
       pointer = retrieve file
+
+      puts "got a fucking pointer: #{ pointer }"
 
       if pointer.size > 0
         pointer << contents
