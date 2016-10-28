@@ -218,12 +218,14 @@ module Migration
       key = File.basename file
       pointer = retrieve File.dirname file
 
-      puts "got a fucking pointer: #{ pointer }"
+      puts "got a fucking key: #{ key }"
 
       if pointer[ key ].size > 0
         pointer[ key ] << contents
+        puts "added stanza to existing array: #{ pointer[ key ]}"
       else
         pointer[ key ] = Migration::Artifacts.produce contents
+        puts "added stanza to new array: #{ pointer[ key ]}"
       end
     end
 
