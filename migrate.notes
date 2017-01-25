@@ -1,0 +1,30 @@
+
+
+Migration Models:
+
+File responsible for:
+- absolute path to file
+- raw source file contents
+- parsed source file contents
+- can print itself
+- provide magic methods to access contents?
+-- Array of Artifacts
+-- Nokogiri::XML::Docs
+-- Meta files
+-- Others TBD...
+
+Maintenance Note:
+- adding a new filetype, with a new type of content would require:
+1. Add a unique Valid#thing? method to identify the file parser (optional)
+2. Add a unique Valid#thing? method to identify the content parser
+3. Create new Parse class(es) for the file/contents
+4. Create new Print class(es) for file/content
+5a. Create new Artifact class to represent data?!? Or...
+5b. Create new file class which understands Artifact internals (return Artifact to simpler days)
+6. Write (method_missing|generic)? on new class to grant access to parsed content data structure
+
+Application
+- absolute path to directory
+- (local path?) file list
+- iterate filtered file list exposing File object
+
