@@ -178,7 +178,7 @@ module Migration
     include Enumerable
     include Log
     attr_accessor :porter, :printer
-    attr_reader :conf, :name, :paths, :porter, :root
+    attr_reader :conf, :name, :paths, :root
 
     def initialize(root:, porter: nil)
       @root = root
@@ -213,13 +213,11 @@ module Migration
       populate file, contents
     end
 
+    # TODO: find a cleaner way to do this...
     def add_stanza(file, contents)
       return nil unless @paths.include? file
-      puts "fucking add_stanza adding to file: #{ file }"
       key = File.basename file
       pointer = retrieve File.dirname file
-
-      puts "got a fucking key: #{ key }"
 
       if pointer[ key ].size > 0
         pointer[ key ] << contents
