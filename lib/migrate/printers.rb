@@ -5,8 +5,9 @@
 # Classes to convert various data structures
 # to printable strings.
 
-require "#{ File.dirname __FILE__ }/validators"
+require "#{ File.dirname __FILE__ }/logger"
 require "#{ File.dirname __FILE__ }/parents"
+require "#{ File.dirname __FILE__ }/validators"
 
 
 module Migration
@@ -23,11 +24,14 @@ module Migration
       def it(content, file=nil)
         return nil unless content
         printer = find file if file
-        printer ||= Default
+        printer ||= Printers::Default
         Migration::Log.puts "Selected a printer: #{ printer }"
         printer.print content
       end
     end
+  end
+
+  module Printers
 
     # Child classes under Print are data, and not file-type, based
     class Default
@@ -53,24 +57,22 @@ module Migration
         end
       end
     end
-  end
 
+    # Subclassed printers are for a specific filetype
+    # and can implement a unique #valid? test
+    class ConfPrinter < Print
+      class << self
 
-  # Subclassed printers are for a specific filetype
-  # and can implement a unique #valid? test
-  class ConfPrinter < Print
-    class << self
-
-      def print(stanzas)
-        Valid.array? stanzas do
-          stanzas.map {|stanza| stanza.respond_to?( :print ) ? stanza.print : stanza }.join "\n"
+        def print(stanzas)
+          Valid.array? stanzas do
+            stanzas.map {|stanza| stanza.respond_to?( :print ) ? stanza.print : stanza }.join "\n"
+          end
         end
-      end
 
-      def valid?(conf)
-        Valid.confname? conf or Valid.array? conf
+        def valid?(conf)
+          Valid.confname? conf or Valid.array? conf
+        end
       end
     end
   end
-
 end
