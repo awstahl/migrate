@@ -4,8 +4,10 @@
 #
 # Tests of Collection of utility methods to validate data
 
+
 require 'rspec'
 require "#{ File.dirname __FILE__ }/../lib/migrate/validators"
+
 
 # Validator contains logic to determine if a
 # thing appears to meet some characteristic

@@ -9,26 +9,33 @@
 require 'rspec'
 require "#{ File.dirname __FILE__ }/../lib/migrate/parents"
 
+
 describe 'Parents' do
 
   before :all do
 
-    class Subpar
-      @children = []
-      extend Migration::Parent
-    end
+    if Object.const_defined? 'Migration::Parent'
 
-    class Junior < Subpar
-      @children = []
-      class << self
+      class Subpar
+        @children = []
+        extend Migration::Parent
+      end
 
-        def valid?(it)
-          it unless it == 'foobar'
+      class Junior < Subpar
+        @children = []
+        class << self
+
+          def valid?(it)
+            it unless it == 'foobar'
+          end
+
         end
-        alias :actor :valid?
-
       end
     end
+  end
+
+  it 'exists' do
+    expect( Object.const_defined? 'Migration::Parent' ).to be_truthy
   end
 
   it 'has children' do

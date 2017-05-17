@@ -4,32 +4,37 @@
 #
 # Tests for Logger method to centralize output
 
+
 require 'rspec'
 require "#{ File.dirname __FILE__ }/../lib/migrate/logger"
+
 
 describe 'Migration Logger' do
 
   before :all do
     @logfile = './spec/data/tst.log'
 
-    class LogTest
-      include Migration::Log
+    if Object.const_defined? 'Migration::Log'
 
-      def run
-        with_logging do |log|
-          log.puts 'a log entry'
+      class LogTest
+        include Migration::Log
+
+        def run
+          with_logging do |log|
+            log.puts 'a log entry'
+          end
         end
-      end
 
-      def entry
-        with_logging 'passed log entry' do |log|
-          log.puts 'hi from entry'
+        def entry
+          with_logging 'passed log entry' do |log|
+            log.puts 'hi from entry'
+          end
         end
-      end
 
-      def verify
-        with_logging do |log|
-          log.respond_to? :puts
+        def verify
+          with_logging do |log|
+            log.respond_to? :puts
+          end
         end
       end
     end
@@ -42,9 +47,13 @@ describe 'Migration Logger' do
   end
 
   before :each do
-    @log = LogTest.new
+    @log = LogTest.new if Object.const_defined? 'LogTest'
     File.delete @logfile if File.exists? @logfile
-    Migration::Log.file = STDOUT
+    Migration::Log.file = STDOUT if Object.const_defined? 'Migration::Log'
+  end
+
+  it 'exists' do
+    expect( @log ).to be_truthy
   end
 
   it 'adds a logging method' do

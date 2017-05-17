@@ -4,6 +4,7 @@
 #
 #  Tests for Options factory
 
+
 require 'rspec'
 require "#{ File.dirname __FILE__ }/../lib/migrate/options"
 
@@ -12,24 +13,28 @@ describe 'Migration Options' do
 
   before :all do
 
-    class OptTesting < Migration::Options
+    if Object.const_defined? 'Migration::Options'
 
-      @opts = OptionParser.new do |opts|
-        opts.banner = 'Usage: opttesting -p STRING'
-        opts.on '-p', '--print STRING', 'the string to print back' do |arg|
-          @runtime[ :string ] = "the string to print back: #{ arg }"
+      class OptTesting < Migration::Options
+
+        @opts = OptionParser.new do |opts|
+          opts.banner = 'Usage: opttesting -p STRING'
+          opts.on '-p', '--print STRING', 'the string to print back' do |arg|
+            @runtime[ :string ] = "the string to print back: #{ arg }"
+          end
+        end
+
+        class << self
+          attr_reader :runtime
+
+          def parse(args)
+            @runtime = {}
+            @opts.parse args
+            @runtime
+          end
         end
       end
 
-      class << self
-        attr_reader :runtime
-
-        def parse(args)
-          @runtime = {}
-          @opts.parse args
-          @runtime
-        end
-      end
     end
   end
 

@@ -12,22 +12,26 @@ require "#{ File.dirname __FILE__ }/../lib/migrate/printers.rb"
 describe 'Migration Printing' do
 
   before :all do
-    class Migration::FakePrinter < Migration::Print
-      class << self
-        def print(content)
-          content
+
+    if Object.const_defined? 'Migration::Print'
+
+      class Migration::FakePrinter < Migration::Print
+        class << self
+          def print(content)
+            content
+          end
+
+          def valid?(it)
+            it =~ /\.conf$/
+          end
         end
 
-        def valid?(it)
-          it =~ /\.conf$/
-        end
       end
-
     end
   end
 
   it 'exists' do
-    expect( Object.const_defined? 'Migration::Print' ).to be_truthy
+    expect( Object.const_defined? 'Migration::FakePrinter' ).to be_truthy
   end
 
   it 'calls #to_s on the given param by default' do
@@ -61,15 +65,15 @@ describe 'Migration Default printing' do
   end
 
   it 'exists' do
-    expect( Object.const_defined? 'Migration::Print::Default')
+    expect( Object.const_defined? 'Migration::Printers::Default')
   end
 
   it 'calls to_s  on the param' do
-    expect( Migration::Print::Default.print %w[ a b c ] ).to eq( "[\"a\", \"b\", \"c\"]" )
+    expect( Migration::Printers::Default.print %w[ a b c ] ).to eq( "[\"a\", \"b\", \"c\"]" )
   end
 
   it 'calls to_s on anything' do
-    expect( Migration::Print::Default.print @anything ).to eq( 'all your base are belong to us' )
+    expect( Migration::Printers::Default.print @anything ).to eq( 'all your base are belong to us' )
   end
 
 end
@@ -78,17 +82,16 @@ end
 describe 'Migration ini stanza printing' do
 
   it 'exists' do
-    # expect( Object.const_defined? 'Migration::IniPrinter' ).to be_truthy
-    expect( Object.const_defined? 'Migration::Print::Ini' ).to be_truthy
+    expect( Object.const_defined? 'Migration::Printers::Ini' ).to be_truthy
   end
 
   it 'prints an ini stanza from a header string and hash' do
-    expect( Migration::Print::Ini.print 'test ini stanza', enabled: true, zeta: 'maybe', queue: false ).to \
+    expect( Migration::Printers::Ini.print 'test ini stanza', enabled: true, zeta: 'maybe', queue: false ).to \
     eq( "[test ini stanza]\nenabled = true\nqueue = false\nzeta = maybe\n" )
   end
 
   it 'requires a valid hash' do
-    expect( Migration::Print::Ini.print 3.14, 'not a hash' ).to eq( "[3.14]\n")
+    expect( Migration::Printers::Ini.print 3.14, 'not a hash' ).to eq( "[3.14]\n")
   end
 
 end
@@ -106,31 +109,31 @@ describe 'Migration conf file printing' do
   end
 
   it 'exists' do
-    expect( Object.const_defined? 'Migration::ConfPrinter' ).to be_truthy
+    expect( Object.const_defined? 'Migration::Printers::ConfPrinter' ).to be_truthy
   end
 
   it 'prints a conf file' do
-    expect( Migration::ConfPrinter.print [ "stanza\n", "block\n", "line\n" ]).to eq( "stanza\n\nblock\n\nline\n" )
+    expect( Migration::Printers::ConfPrinter.print [ "stanza\n", "block\n", "line\n" ]).to eq( "stanza\n\nblock\n\nline\n" )
   end
 
   it 'prints an array & contents' do
-    expect( Migration::ConfPrinter.print [ @printme, @printme, @printme ]).to match( /(#{ @dmtch }\sprinted!\n\n?){3}/ )
+    expect( Migration::Printers::ConfPrinter.print [ @printme, @printme, @printme ]).to match( /(#{ @dmtch }\sprinted!\n\n?){3}/ )
   end
 
   it 'requires an array to print' do
-    expect( Migration::ConfPrinter.print 'not an array' ).to be_falsey
+    expect( Migration::Printers::ConfPrinter.print 'not an array' ).to be_falsey
   end
 
   it 'validates conf file name' do
-    expect( Migration::ConfPrinter.valid? 'file.conf').to be_truthy
+    expect( Migration::Printers::ConfPrinter.valid? 'file.conf').to be_truthy
   end
 
   it 'validates an array' do
-    expect( Migration::ConfPrinter.valid? %w[ 1 2 3 ]).to be_truthy
+    expect( Migration::Printers::ConfPrinter.valid? %w[ 1 2 3 ]).to be_truthy
   end
 
   it 'is a printer' do
-    expect( Migration::ConfPrinter.ancestors[ 1 ]).to eq( Migration::Print )
+    expect( Migration::Printers::ConfPrinter.ancestors[ 1 ]).to eq( Migration::Print )
   end
 
 end

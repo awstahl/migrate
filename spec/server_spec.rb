@@ -31,7 +31,7 @@ describe 'Migration Server Connection' do
     conf
     mocks
     @conf[ :proto ] = @proto
-    @conn = Migration::Server::Connection.new @conf
+    @conn = Migration::Server::Connection.new @conf if Object.const_defined? 'Migration::Server::Connection'
   end
 
   it 'exists' do
@@ -54,6 +54,7 @@ describe 'Migration Server Connection' do
   end
 end
 
+
 describe 'Migration Server Porter' do
 
   before :all do
@@ -64,7 +65,7 @@ describe 'Migration Server Porter' do
     @conn = double 'Migration::Server::Connection'
     allow( @conn ).to receive( :exec ).with( 'find /path/to/files -type f -iname "*"' ).and_return( "./sub/file1.txt\n./sub/file2.txt\n./sub2/file3.lst" )
     allow( @conn ).to receive( :exec ).with( 'cat /path/to/file' ).and_return( 'all your base are belong to us' )
-    @porter = Migration::Server::Porter.new @conn
+    @porter = Migration::Server::Porter.new @conn if Object.const_defined? 'Migration::Server::Porter'
   end
 
   it 'exists' do
@@ -91,6 +92,7 @@ describe 'Migration Server Porter' do
     expect{ @porter.get 'nothing' }.to raise_exception( Migration::InvalidPath )
   end
 end
+
 
 describe 'Migration Server Itself' do
 
@@ -148,7 +150,7 @@ describe 'Migration Server Itself' do
     }
     mocks
     @conf = { connection: { host: 'localhost', user: 'splunk', keyfile: "#{ File.dirname __FILE__ }/data/sample.key", proto: @proto }}
-    @srv = Migration::Server.new @conf
+    @srv = Migration::Server.new @conf if Object.const_defined? 'Migration::Server'
   end
 
   it 'exists' do

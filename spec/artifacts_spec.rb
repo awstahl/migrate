@@ -4,6 +4,7 @@
 #
 #  Tests for a set of classes that models config data.
 
+
 require 'rspec'
 require "#{ File.dirname __FILE__ }/../lib/migrate/artifacts.rb"
 
@@ -19,17 +20,21 @@ describe 'Migration Artifact' do
   end
 
   before :all do
-    class ArtSpec < Migration::Artifacts::Artifact; end
+    if Object.const_defined? 'Migration::Artifacts::Artifact'
+      class ArtSpec < Migration::Artifacts::Artifact; end
+    end
     @source = 'a string of text'
   end
 
   after :all do
-    Migration::Artifacts::Artifact.children.delete ArtSpec
+    if Object.const_defined? 'ArtSpec'
+      Migration::Artifacts::Artifact.children.delete ArtSpec
+    end
   end
 
   before :each do
     mocks
-    @art = Migration::Artifacts::Artifact.new @source
+    @art = Migration::Artifacts::Artifact.new @source if Object.const_defined? 'Migration::Artifacts::Artifact'
   end
 
   it 'exists' do
@@ -70,20 +75,25 @@ describe 'Migration Artifact' do
 
 end
 
+
 describe 'Migration Artifacts module' do
 
   before :all do
-    class ArtMock < Migration::Artifacts::Artifact
-      class << self
-        def valid?(mock)
-          true if mock == 'codeword'
+    if Object.const_defined? 'Migration::Artifacts::Artifact'
+
+      class ArtMock < Migration::Artifacts::Artifact
+        class << self
+          def valid?(mock)
+            true if mock == 'codeword'
+          end
         end
       end
+
     end
   end
 
   after :all do
-    Migration::Artifacts::Artifact.children.delete ArtMock
+    Migration::Artifacts::Artifact.children.delete ArtMock if Object.const_defined? 'Migration::Artifacts::Artifact'
   end
 
   it 'can produce an Artifact' do
@@ -95,6 +105,7 @@ describe 'Migration Artifacts module' do
   end
 
 end
+
 
 describe 'Migration Conf' do
 
@@ -108,7 +119,7 @@ describe 'Migration Conf' do
   end
 
   before :each do
-    @content = Conf.new @conf
+    @content = Conf.new @conf if Object.const_defined? 'Migration::Artifacts::Conf'
   end
 
   it 'exists' do
@@ -187,6 +198,7 @@ describe 'Migration Conf' do
 
 end
 
+
 describe 'Migration Ini' do
 
   def mocks
@@ -203,7 +215,7 @@ describe 'Migration Ini' do
 
   before :each do
     mocks
-    @ini = Migration::Artifacts::Ini.new @source
+    @ini = Migration::Artifacts::Ini.new @source if Object.const_defined? 'Migration::Artifacts::Ini'
   end
 
   it 'exists' do
@@ -281,6 +293,7 @@ describe 'Migration Ini' do
 
 end
 
+
 describe 'Migration Xml' do
 
   before :all do
@@ -288,7 +301,7 @@ describe 'Migration Xml' do
   end
 
   before :each do
-    @xml = Migration::Artifacts::Xml.new @source
+    @xml = Migration::Artifacts::Xml.new @source if Object.const_defined? 'Migration::Artifacts::Xml'
   end
 
   it 'exists' do

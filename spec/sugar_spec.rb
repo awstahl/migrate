@@ -91,6 +91,5 @@ describe 'Some Sugar' do
         },
         bar: 'none'
                           })
-end
-
+  end
 end
