@@ -27,9 +27,7 @@ describe 'Migration Artifact' do
   end
 
   after :all do
-    if Object.const_defined? 'ArtSpec'
-      Migration::Artifacts::Artifact.children.delete ArtSpec
-    end
+    Migration::Artifacts::Artifact.children.delete ArtSpec if Object.const_defined? 'ArtSpec'
   end
 
   before :each do

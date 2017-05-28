@@ -93,7 +93,7 @@ module Migration
       alias :<< :add
 
       def print
-        ConfPrinter.print @data
+        Printers::ConfPrinter.print @data
       end
     end
 
@@ -110,7 +110,7 @@ module Migration
 
       def initialize(content)
         super
-        @printer = Print::Ini
+        @printer = Printers::Ini
       end
 
       def parse(parser=Parse)

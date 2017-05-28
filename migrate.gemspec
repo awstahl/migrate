@@ -3,13 +3,13 @@
 #  Author: alex@testcore.net
 #
 
-VERSION = '1.1.3.28'
+VERSION = '1.1.3.29'
 
 Gem::Specification.new do |spec|
 
   spec.add_development_dependency 'rspec', '~>0'
   spec.author = [ 'A. W. Stahl']
-  spec.date = Time.now.to_s.split.first 
+  spec.date = Time.now.to_s.split.first
 
   spec.description = 'A configuration migration and deployment tool. Fetch existing confs, parse & modify, then print.'
   spec.email = 'alex@testcore.net'
