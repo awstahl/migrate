@@ -1,9 +1,9 @@
-require './lib/migrate/artifacts'
+require './lib/migrate'
 
 Conf = { connection: {
-  host: 'tewuvadspl06.tew.sephoraus.com',
+  host: 'splunk.lan',
   user: 'splunk',
-  keyfile: '/home/awstahl/Keys/splunk.pem'
+  keyfile: '/path/to/key'
   }
 }
 
