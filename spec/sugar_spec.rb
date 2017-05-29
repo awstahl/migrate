@@ -91,7 +91,8 @@ describe 'Some Sugar' do
         },
         bar: 'none',
         lorem: {
-            amit: 'changed'
+            amit: 'changed',
+            another: 'key'
         }
     }
     @hash.deep_merge addme
@@ -107,7 +108,8 @@ describe 'Some Sugar' do
                 'roman.conf': 'numerals',
                 'greek.conf': 'philos'
             },
-            amit: 'dolor'
+            amit: 'dolor',
+            another: 'key'
         },
         bar: 'none'
                           })
