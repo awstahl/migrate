@@ -39,6 +39,26 @@ describe 'Some Sugar' do
     expect( 'a%20b%20c%20'.to_plain ).to eq( 'a b c ')
   end
 
+  it 'adds a to_keys to strings to create nested hashes' do
+    str = 'a b c'
+    expect( str.to_keys ).to eq( 'a' => { 'b' => { 'c' => { }}})
+  end
+
+  it 'can convert to keys with a delimiter' do
+    path = 'path/to/nowhere'
+    expect( path.to_keys '/' ).to eq( 'path' => { 'to' => { 'nowhere' => { }}})
+  end
+
+  it 'returns a single-key hash for congruent strings' do
+    str = 'string'
+    expect( str.to_keys ).to eq( 'string' => { })
+  end
+
+  it 'ignores non-present delimiters' do
+    str = 'string'
+    expect( str.to_keys '.' ).to eq( 'string' => { })
+  end
+
   it 'adds a to_paths printer to nested hashes' do
     expect( @hash.to_paths ).to eq( "foo/bar.txt\nfoo/baz.txt\nlorem/ipsum/roman.conf\nlorem/ipsum/greek.conf\nlorem/amit\n" )
   end

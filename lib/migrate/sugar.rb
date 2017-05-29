@@ -21,10 +21,26 @@ class String
     require 'uri'
     URI.decode self
   end
+
+  def to_keys(delim=/\s/)
+
+    out = {}
+    dirs = self.split delim
+    count = dirs.size - 1
+    pointer = out
+
+    0.upto ( count ) do |i|
+      key = dirs[ i ]
+      pointer[ key ] = {} unless pointer.key? key
+      pointer = pointer[ key ]
+    end
+    out
+  end
 end
 
 class Hash
 
+  # TODO: think this needs to go...
   def to_paths(prefix=nil, stack=[])
     out=''
 

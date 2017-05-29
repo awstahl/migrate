@@ -202,28 +202,3 @@ describe 'Migration Path Parsing' do
   end
 
 end
-
-
-describe 'Migration Path Hash Parsing' do
-
-  before :all do
-    @path = '/path/to/nowhere'
-  end
-
-  it 'parses a path to a hash' do
-    expect( Migration::Parsers::PathHashParser.parse @path ).to eq({ 'path' => { 'to' => { 'nowhere' => {} }}})
-  end
-
-  it 'handlles single element paths' do
-    expect( Migration::Parsers::PathHashParser.parse 'bin/' ).to eq( 'bin' => {})
-  end
-
-  it 'cannot parse a plain string' do
-    expect( Migration::Parsers::PathHashParser.parse 'not a path' ).to eq({})
-  end
-
-  it 'can only parse a path' do
-    expect( Migration::Parsers::PathHashParser.parse 3.14 ).to eq({})
-  end
-
-end

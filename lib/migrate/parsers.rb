@@ -177,26 +177,5 @@ module Migration
       end
     end
 
-    class PathHashParser
-
-      class << self
-        def parse(path)
-          out = {}
-          return out unless PathParser.valid? path
-
-          dirs = PathParser.parse path
-          count = dirs.size - 1
-          pointer = out
-
-          0.upto ( count ) do |i|
-            key = dirs[ i ]
-            pointer[ key ] = {} unless pointer.key? key
-            pointer = pointer[ key ]
-          end
-          out
-        end
-      end
-    end
-
   end
 end
