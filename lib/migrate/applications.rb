@@ -4,18 +4,23 @@
 #
 #  This is a set of classes that models application containers & their creation.
 
-require "#{ File.dirname __FILE__ }/logger"
+
+require "#{ File.dirname __FILE__ }/exceptions"
+#require "#{ File.dirname __FILE__ }/logger"
+require "#{ File.dirname __FILE__ }/parsers"
+require "#{ File.dirname __FILE__ }/sugar"
+require "#{ File.dirname __FILE__ }/validators"
+
 
 module Migration
 
-  # An application is an encapsulation of the
-  # data within a given structured subdirectory
-
   # TODO: An application should not parse itself...
   # - Move parsing logic to an AppBuilder class
-  # - Application container should only house data & accessor logic
+  # - Application container should only house data & accessor logic - IN PROGRESS
 
-  class AppBuilder
+  # An Application Manager handles populating an
+  # Application using some form of 'porter' object.
+  class AppManager
 
     class << self
 
@@ -23,14 +28,75 @@ module Migration
 
   end
 
+  # An Application is a smart container for a set of files.
+  # Assumes an app's files live under one root, and consist
+  # of files located under nested subdirectories.
   class Application
-    # Model contains:
-    # 1. application name
-    # 2. root application path
-    # 3. (relative) file list
-    # 4. structured file data
+
+    attr_reader :files, :root
+
+    def initialize(root:, filelist:[])
+      raise InvalidPath unless Valid.path? root
+      @root = root
+      @files = filelist
+      configure
+    end
+
+    def name
+      File.basename @root
+    end
+
+    def files=(list)
+      @files = list.select {|path| Valid.path? path }
+      configure
+    end
+
+    def file(path, content=nil)
+      dirs = Parse.it( path.gsub /^#@root/, '' )
+
+      if @files.include? path
+
+        if content
+          last = dirs.pop
+          @conf.dig( *dirs )[ last ] = content
+        else
+          @conf.dig *dirs
+        end
+
+      elsif content
+        self << path
+        contents path, content
+      end
+    end
+    alias :contents :file
+
+    def configure
+      @conf = {}
+      @files.each do |path|
+        merge path
+      end
+    end
+    private :configure
+
+    def <<(path)
+      if Valid.path? path
+        @files << path
+        merge path
+      end
+    end
+
+    def merge(path)
+      @conf.deep_merge path.to_keys( '/' )
+    end
+    private :merge
+
+    def [](key)
+      @conf[ key ]
+    end
+
   end
 
+# Original Application class
 =begin
   class Application
     include Enumerable
@@ -71,7 +137,6 @@ module Migration
       populate file, contents
     end
 
-    # TODO: find a cleaner way to do this...
     def add_stanza(file, contents)
       return nil unless @paths.include? file
       key = File.basename file
