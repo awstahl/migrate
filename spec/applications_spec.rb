@@ -115,13 +115,6 @@ describe 'Migration Application' do
     expect( @app.file 'local/inputs.conf' ).to eq( @conffile )
   end
 
-  it 'can retrieve file contents by absolute path' do
-    @app.files = @files
-    path = "#@apppath/local/inputs.conf"
-    @app[ 'local' ][ 'inputs.conf' ] = @conffile
-    expect( @app.file path ).to eq( @conffile )
-  end
-
   it 'can add & set contents via path' do
     path = 'local/inputs,conf'
     @app.contents path, @conffile
@@ -133,12 +126,38 @@ end
 
 describe 'Migration Appliction Manager' do
 
-  before :each do
-
+  def files
+    @files = []
+    @files << 'bin/deploy.rb'
+    @files << 'bin/script.rb'
+    @files << 'default/app.conf'
+    @files << 'default/data/models/model.xml'
+    @files << 'default/data/ui/nav/bar.xml'
+    @files << 'default/data/ui/views/main.xml'
+    @files << 'local/inputs.conf'
   end
 
-  it '' do
+  before :each do
+    files
+    @porter = double 'Migration::Server::Porter'
+    allow( @porter ).to receive( :list ).with( '/opt/splunk/etc/apps/foobar' ).and_return( @files )
 
+    @files.each do |file|
+      text = "[#{ File.basename file } header]\nkey = value\nparam = arg\n\n[ second header ]\narg = param\ndir = /foo/bar\n"
+      allow( @porter ).to receive( :get ).with( "/opt/splunk/etc/apps/foobar/#{ file }" ).and_return( text )
+    end
+
+    @app = double 'Migration::Application'
+  end
+
+  it 'exists' do
+    expect( Object.const_defined? 'Migration::AppManager' ).to be_truthy
+  end
+
+  it 'produces a populated app' do
+    app = Migration::AppManager.produce '/opt/splunk/etc/apps/foobar', @porter
+    text = "[app.conf header]\nkey = value\nparam = arg\n\n[ second header ]\narg = param\ndir = /foo/bar\n"
+    expect( app[ 'default' ][ 'app.conf' ].print ).to eq( text )
   end
 
 end
