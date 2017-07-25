@@ -52,6 +52,10 @@ describe 'Migration Server Connection' do
   it 'executes remote commands' do
     expect( @conn.exec( 'll' )).to eq( '/path/to/files...' )
   end
+
+  it 'can fetch an app' do
+
+  end
 end
 
 
@@ -77,14 +81,14 @@ describe 'Migration Server Porter' do
   end
 
   it 'lists files using a connection' do
-    expect( @porter.list '/path/to/files' ).to eq( %w[./sub/file1.txt ./sub/file2.txt ./sub2/file3.lst ])
+    expect( @porter.list '/path/to/files' ).to eq( %w[ sub/file1.txt sub/file2.txt sub2/file3.lst ])
   end
 
   it 'requires an actual file path' do
     expect{ @porter.list 'lorem ipsum' }.to raise_exception( Migration::InvalidPath )
   end
 
-  it 'prints the contents of a file' do
+  it 'gets the contents of a file' do
     expect( @porter.get '/path/to/file' ).to eq( 'all your base are belong to us' )
   end
 

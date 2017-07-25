@@ -25,10 +25,17 @@ module Migration
       @porter = Porter.new @conn
     end
 
+    # TODO: Refactor this after Application/AppManager are working...
     def fetch(app, filter=nil)
-      app.porter = @porter
-      app.configure filter
-      @apps[ app.name ] = app
+
+      # OLD:
+      # app.porter = @porter
+      # app.configure filter
+      # @apps[ app.name ] = app
+
+      # Simplest new form:
+      # app = Migration::AppManager.produce app, @porter
+
     end
 
     # Opens the connection to the remote server using
@@ -75,7 +82,8 @@ module Migration
 
       def list(path)
         raise InvalidPath unless valid? path
-        Parse.it @conn.exec( "find #{ path } -type f -iname \"*\"" )
+        paths = Parse.it @conn.exec( "find #{ path } -type f -iname \"*\"" )
+        paths.map {|path| path.gsub! /^\.\//, '' }
       end
 
       def get(file)
