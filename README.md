@@ -18,12 +18,8 @@ connection = host: 'myhost', user: 'myuser', keyfile: '/path/to/mykey.pem'
 # Create a server object with it
 srv = Migration::Server.new connection: connection
 
-# Create an application object
-app = Migration::Application.new root: '/path/to/app/conf.d'
-
-# Fetch the app configuration with the server
-srv.fetch app
-> # iterates files under app.root, fetching contents of each
+# Use the AppManager to produce an application via the server's porter
+app = Migration::AppManager.produce '/path/to/app/conf.d', srv.porter
 
 # Explore the contents of the app through its config hash
 app.conf
