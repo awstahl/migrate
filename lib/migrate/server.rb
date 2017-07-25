@@ -4,7 +4,7 @@
 #
 #  This is a set of classes that models server communication.
 
-require "#{ File.dirname __FILE__ }/artifacts"
+require_relative "artifacts"
 
 
 module Migration

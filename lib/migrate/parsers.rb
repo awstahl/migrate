@@ -6,9 +6,9 @@
 # into native ruby data structures
 
 # noinspection RubyResolve
-require "#{ File.dirname __FILE__ }/validators"
-require "#{ File.dirname __FILE__ }/parents"
-require "#{ File.dirname __FILE__ }/logger"
+require_relative "validators"
+require_relative "parents"
+require_relative "logger"
 
 
 module Migration

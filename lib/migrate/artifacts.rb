@@ -4,15 +4,15 @@
 #
 #  This is a set of classes that models config data.
 
-require "#{ File.dirname __FILE__ }/applications"
-require "#{ File.dirname __FILE__ }/exceptions"
-require "#{ File.dirname __FILE__ }/logger"
-require "#{ File.dirname __FILE__ }/parents"
-require "#{ File.dirname __FILE__ }/parsers"
-require "#{ File.dirname __FILE__ }/printers"
-require "#{ File.dirname __FILE__ }/server"
-require "#{ File.dirname __FILE__ }/sugar"
-require "#{ File.dirname __FILE__ }/validators"
+require_relative "applications"
+require_relative "exceptions"
+require_relative "logger"
+require_relative "parents"
+require_relative "parsers"
+require_relative "printers"
+require_relative "server"
+require_relative "sugar"
+require_relative "validators"
 
 
 module Migration

@@ -1,1 +1,1 @@
-require "#{ File.dirname __FILE__ }/migrate/artifacts.rb"
+require_relative "migrate/artifacts.rb"

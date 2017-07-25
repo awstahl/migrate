@@ -5,9 +5,9 @@
 # Classes to convert various data structures
 # to printable strings.
 
-require "#{ File.dirname __FILE__ }/logger"
-require "#{ File.dirname __FILE__ }/parents"
-require "#{ File.dirname __FILE__ }/validators"
+require_relative "logger"
+require_relative "parents"
+require_relative "validators"
 
 
 module Migration

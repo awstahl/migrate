@@ -4,13 +4,11 @@
 #
 #  This is a set of classes that models application containers & their creation.
 
-
-require "#{ File.dirname __FILE__ }/artifacts"
-require "#{ File.dirname __FILE__ }/exceptions"
-#require "#{ File.dirname __FILE__ }/logger"
-require "#{ File.dirname __FILE__ }/parsers"
-require "#{ File.dirname __FILE__ }/sugar"
-require "#{ File.dirname __FILE__ }/validators"
+require_relative "artifacts"
+require_relative "exceptions"
+require_relative "parsers"
+require_relative "sugar"
+require_relative "validators"
 
 
 module Migration
