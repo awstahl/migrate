@@ -10,18 +10,22 @@ module Migration
 
     class << self
 
-      # TODO: DRY these out with method_missing...?!?
+      def runner(klass, data, &block)
+        klass === data && ( block_given? ? yield( data ) : true )
+      end
+      private :runner
+
       # Those that take blocks are helpers for the others...
       def string?(string, &block)
-        String === string  && string !~ /\0/ && ( block_given? ? yield( string ) : true )
+        string !~ /\0/ && runner( String, string, &block )
       end
 
       def array?(array, &block)
-        Array === array && ( block_given? ? yield( array ) : true )
+        runner Array, array, &block
       end
 
       def hash?(hash, &block)
-        Hash === hash && ( block_given? ? yield( hash ) : true )
+        runner Hash, hash, &block
       end
 
       def file?(file)
