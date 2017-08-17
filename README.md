@@ -18,8 +18,11 @@ connection = host: 'myhost', user: 'myuser', keyfile: '/path/to/mykey.pem'
 # Create a server object with it
 srv = Migration::Server.new connection: connection
 
-# Use the AppManager to produce an application via the server's porter
-app = Migration::AppManager.produce '/path/to/app/conf.d', srv.porter
+## Use the AppManager to produce an application via the server's porter
+# app = Migration::AppManager.produce '/path/to/app/conf.d', srv.porter
+
+# Ask the server to fetch the app
+app = srv.fetch '/path/to/app/conf.d'
 
 # Explore the contents of the app through its config hash
 app.conf
@@ -27,17 +30,17 @@ app.conf
 
 # Paths become hash keys
 app.conf[ 'path' ][ 'to' ][ 'app' ][ 'conf.d' ][ 'auth.conf' ]
-> structured file contents
+> # structured file contents
 
 # Alternately, retrieve contents via the path string
-app.retrieve '/path/to/app/conf.d/auth.conf'
-> structured file contents
+app.contents '/path/to/app/conf.d/auth.conf'
+> # structured file contents
 
 # Conf data is auto-parsed based on what it looks like.
 # In the case of an INI-style file, with named stanzas,
 # the result is an array of Artifacts containing the 
 # parsed stanza.
-stanza = app.retrieve( '/path/to/app/conf.d/auth.conf' ).first
+stanza = app.contents( '/path/to/app/conf.d/auth.conf' ).first
 
 # The artifact provides methods to view its contents
 stanza.name             # INI header
